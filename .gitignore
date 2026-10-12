@@ -62,3 +62,17 @@ frames_sec/
 Skills_MengTo/
 find_colors_results.json
 
+# Large data / binaries excluded for GitHub (code-only push)
+# Full data retained locally on backup-full-main branch
+datasets/
+data/
+artifacts/
+frontend/public/frames/
+frontend/public/models/
+frontend/public/neural_pathway_transmission.mp4
+*.edf
+*.keras
+*.joblib
+*.glb
+*.mp4
+
