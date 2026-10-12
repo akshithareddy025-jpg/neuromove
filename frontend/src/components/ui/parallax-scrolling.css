@@ -1,0 +1,124 @@
+.parallax {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  background: #020204;
+  color: #fff;
+}
+
+.parallax__header {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  min-height: 600px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.parallax__visuals {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.parallax__black-line-overflow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.05);
+  z-index: 5;
+}
+
+.parallax__layers {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.parallax__layer-img {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 85%;
+  max-height: 80%;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+  will-change: transform;
+}
+
+.parallax__layer-title {
+  position: absolute;
+  z-index: 3;
+  text-align: center;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.parallax__title {
+  font-size: clamp(3rem, 10vw, 8rem);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+  margin: 0;
+  background: linear-gradient(180deg, #ffffff 0%, rgba(255, 255, 255, 0.45) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.parallax__fade {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, transparent 30%, rgba(2, 2, 4, 0.8) 100%),
+    linear-gradient(180deg, transparent 60%, #020204 100%);
+  pointer-events: none;
+  z-index: 4;
+}
+
+.parallax__content {
+  position: relative;
+  z-index: 10;
+  padding: 80px 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.osmo-icon-svg {
+  max-width: 90px;
+  height: auto;
+  color: rgba(255, 255, 255, 0.4);
+  transition: color 0.3s ease;
+}
+
+.osmo-icon-svg:hover {
+  color: #61d7ff;
+}
+
+.osmo-credits {
+  text-align: center;
+  padding: 16px;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.osmo-credits__p {
+  margin: 0;
+}
+
+.osmo-credits__p-a {
+  color: #61d7ff;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

@@ -1,0 +1,252 @@
+/* Premium selective glass system — post-portal + telemetry only.
+   Hand hero, portal wordmark, and Sylva 3D scenes are intentionally untouched.
+   Tokens per approved direction: warm-white neutrals, restrained blur, soft shadow. */
+
+:root {
+  --premium-glass-bg-primary: rgba(245, 245, 238, 0.88);
+  --premium-glass-bg-secondary: rgba(245, 245, 238, 0.72);
+  --premium-glass-bg-utility: rgba(245, 245, 238, 0.55);
+  --premium-glass-border: rgba(255, 255, 255, 0.55);
+  --premium-glass-border-bright: rgba(255, 255, 255, 0.85);
+  --premium-glass-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+  --premium-glass-shadow-lift: 0 20px 52px rgba(20, 35, 24, 0.14);
+  --premium-ink: #1c2420;
+  --premium-ink-soft: #43514a;
+  --premium-ink-mute: #6b7a71;
+  --premium-moss: #2d6a4f;
+}
+
+.premium-glass-primary,
+.premium-glass-secondary,
+.premium-glass-utility {
+  border-radius: 28px;
+  border: 1px solid var(--premium-glass-border);
+  backdrop-filter: blur(18px) saturate(110%);
+  -webkit-backdrop-filter: blur(18px) saturate(110%);
+  box-shadow: var(--premium-glass-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: var(--premium-ink);
+}
+
+.premium-glass-primary {
+  background: var(--premium-glass-bg-primary);
+  backdrop-filter: blur(20px) saturate(115%);
+  -webkit-backdrop-filter: blur(20px) saturate(115%);
+}
+
+.premium-glass-secondary {
+  background: var(--premium-glass-bg-secondary);
+  border-radius: 24px;
+}
+
+.premium-glass-utility {
+  background: var(--premium-glass-bg-utility);
+  border-radius: 20px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.premium-eyebrow {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--premium-moss);
+}
+
+.premium-reveal {
+  opacity: 0;
+  transform: translate3d(0, 20px, 0) scale(0.97);
+  transition:
+    opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.premium-reveal.is-visible {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
+.premium-lift {
+  transition:
+    transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.35s ease,
+    border-color 0.3s ease;
+}
+
+.premium-lift:hover {
+  transform: translateY(-6px);
+  border-color: var(--premium-glass-border-bright);
+  box-shadow: var(--premium-glass-shadow-lift), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+/* Pill buttons: 48-56px, radius 999px, subtle surface, icon shifts on hover */
+.premium-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 50px;
+  padding: 0 24px;
+  border-radius: 999px;
+  border: 1px solid rgba(28, 36, 32, 0.14);
+  background: rgba(245, 245, 238, 0.9);
+  color: var(--premium-ink);
+  font-size: 0.86rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(20, 35, 24, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  transition:
+    transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+    background 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.28s ease;
+  will-change: transform;
+}
+
+.premium-pill:hover:not(:disabled) {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.96);
+  border-color: rgba(255, 255, 255, 0.9);
+}
+
+.premium-pill:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.premium-pill:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.premium-pill svg {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.premium-pill:hover:not(:disabled) svg {
+  transform: translateX(2px);
+}
+
+/* Circular card action button: 44-56px warm-white glass */
+.premium-circle-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 8px 22px rgba(20, 35, 24, 0.12), inset 0 1px 0 #fff;
+  color: var(--premium-ink);
+  cursor: pointer;
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s ease;
+}
+
+.premium-circle-btn:hover {
+  transform: scale(1.06);
+}
+
+.premium-circle-btn:active {
+  transform: scale(0.96);
+}
+
+.premium-circle-btn svg {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.premium-circle-btn:hover svg {
+  transform: translate(2px, -2px);
+}
+
+/* Light instrument island: telemetry contains zero black surfaces.
+   Scoped var overrides so global dark theme elsewhere is untouched. */
+.telemetry-light {
+  --bg-surface-0: rgba(255, 255, 255, 0.66);
+  --bg-surface-1: rgba(255, 255, 255, 0.78);
+  --bg-surface-2: rgba(240, 242, 236, 0.9);
+  --text-primary: #1c2420;
+  --text-secondary: #43514a;
+  --text-tertiary: #6b7a71;
+  --accent-cyan: #1e67d6;
+  background: linear-gradient(180deg, rgba(233, 237, 227, 0.95), rgba(245, 245, 238, 0.96));
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 32px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  color: #1c2420;
+}
+
+.telemetry-light .card {
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  color: #1c2420;
+}
+
+.telemetry-light .card-title,
+.telemetry-light .card-subtitle,
+.telemetry-light h2,
+.telemetry-light h3 {
+  color: #1c2420;
+}
+
+.telemetry-light .oscilloscope-canvas-wrap {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(28, 36, 32, 0.1);
+  border-radius: 20px;
+}
+
+/* Header world themes: dark hand world vs warm-white Sylva world.
+   Only colors transition — no layout shift. */
+.floating-nav-pill {
+  transition: background 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease, color 0.4s ease;
+}
+
+.floating-nav-pill[data-world="sylva"] {
+  background: rgba(245, 245, 238, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(18px) saturate(110%);
+  -webkit-backdrop-filter: blur(18px) saturate(110%);
+}
+
+.floating-nav-pill[data-world="sylva"] .nav-tabs-capsule {
+  background: rgba(255, 255, 255, 0.6);
+  border-color: rgba(28, 36, 32, 0.1);
+}
+
+/* Sylva content runs over a sticky world: keep blurs static, never animated. */
+.sylva-perf-layer {
+  transform: translateZ(0);
+  will-change: transform;
+  contain: strict;
+}
+
+@media (max-width: 900px) {
+  .premium-glass-primary,
+  .premium-glass-secondary {
+    border-radius: 22px;
+  }
+
+  .telemetry-light {
+    border-radius: 24px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .premium-reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .premium-lift,
+  .premium-pill,
+  .premium-circle-btn {
+    transition: none;
+  }
+
+  .premium-lift:hover,
+  .premium-pill:hover:not(:disabled) {
+    transform: none;
+  }
+}

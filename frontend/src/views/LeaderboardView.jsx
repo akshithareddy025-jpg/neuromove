@@ -17,8 +17,8 @@ export default function LeaderboardView({ leaderboardData, metricsData, loading,
       <div className="card" style={{
         textAlign: 'center',
         padding: '40px 20px',
-        border: '1px solid rgba(244, 63, 94, 0.4)',
-        background: 'rgba(244, 63, 94, 0.08)'
+        border: '1px solid rgba(255, 255, 255, 0.2)',
+        background: 'rgba(255, 255, 255, 0.05)'
       }}>
         <div style={{ color: 'var(--accent-rose)', fontWeight: 700, fontSize: '1.1rem', marginBottom: '8px' }}>
           Unable to Load Subject Leaderboard

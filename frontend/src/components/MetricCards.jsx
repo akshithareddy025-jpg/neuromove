@@ -52,10 +52,10 @@ export default function MetricCards({ metrics }) {
         <div style={{ gridColumn: 'span 7' }} className="bento-col-span-7">
           <SpotlightCard
             id="metric-card-prod-acc"
-            spotlightColor="rgba(255, 255, 255, 0.1)"
-            borderColor="rgba(255, 255, 255, 0.2)"
-            hoverBorderColor="rgba(255, 255, 255, 0.45)"
-            style={{ padding: '28px', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}
+            spotlightColor="rgba(167, 216, 245, 0.3)"
+            borderColor="#000000"
+            hoverBorderColor="#000000"
+            style={{ padding: '28px', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: '#ffffff', border: '1.5px solid #000000', borderRadius: '16px' }}
           >
             <div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
@@ -65,20 +65,20 @@ export default function MetricCards({ metrics }) {
                       width: '36px',
                       height: '36px',
                       borderRadius: '10px',
-                      background: 'rgba(255, 255, 255, 0.1)',
-                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      background: '#A7D8F5',
+                      border: '1.5px solid #000000',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
                   >
-                    <Target size={20} color="#FFFFFF" />
+                    <Target size={20} color="#000000" />
                   </div>
                   <div>
-                    <span style={{ fontSize: '0.74rem', color: '#FFFFFF', fontWeight: 600, letterSpacing: '0.06em' }}>
+                    <span style={{ fontSize: '0.74rem', color: '#7A263A', fontWeight: 800, letterSpacing: '0.06em' }}>
                       {metrics?.model_name === 'cnn_lstm' ? 'DEEP LEARNING CO-CHAMPION' : 'PRIMARY SMR BENCHMARK'}
                     </span>
-                    <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#FFFFFF', margin: 0 }}>
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#000000', margin: 0 }}>
                       {metrics?.model_name === 'cnn_lstm'
                         ? 'Hybrid Spatio-Temporal CNN-LSTM'
                         : 'Production MiniRocket Spatial Fusion'}
@@ -92,10 +92,10 @@ export default function MetricCards({ metrics }) {
                     fontSize: '0.72rem',
                     padding: '3px 10px',
                     borderRadius: '9999px',
-                    background: 'rgba(255, 255, 255, 0.12)',
-                    color: '#FFFFFF',
-                    border: '1px solid rgba(255, 255, 255, 0.3)',
-                    fontWeight: 700,
+                    background: '#A7D8F5',
+                    color: '#000000',
+                    border: '1.5px solid #000000',
+                    fontWeight: 800,
                   }}
                 >
                   {metrics?.model_name === 'cnn_lstm' ? 'VERIFIED CHAMPION' : 'BEST PIPELINE'}
@@ -107,20 +107,20 @@ export default function MetricCards({ metrics }) {
                   className="mono"
                   style={{
                     fontSize: 'clamp(2.8rem, 4.5vw, 3.8rem)',
-                    fontWeight: 800,
-                    color: '#FFFFFF',
+                    fontWeight: 900,
+                    color: '#000000',
                     letterSpacing: '-0.04em',
                     lineHeight: 1,
                   }}
                 >
                   <Counter value={parseFloat(globalAcc)} decimals={2} suffix="%" />
                 </span>
-                <span style={{ color: '#E4E4E7', fontWeight: 600, fontSize: '0.94rem' }}>
+                <span style={{ color: '#000000', fontWeight: 700, fontSize: '0.94rem' }}>
                   +{(parseFloat(globalAcc) - 25.0).toFixed(2)}% vs 4-class chance
                 </span>
               </div>
 
-              <p style={{ fontSize: '0.9rem', color: '#A1A1AA', lineHeight: 1.6, margin: '0 0 20px 0' }}>
+              <p style={{ fontSize: '0.9rem', color: '#000000', lineHeight: 1.6, margin: '0 0 20px 0', fontWeight: 500 }}>
                 {metrics?.model_name === 'cnn_lstm'
                   ? 'Spatio-temporal tensor (N, 256 timesteps, 10 channels) with Conv1D localized temporal extraction, Bidirectional LSTM (128 units), dynamic plateau scheduling, and L2 regularization.'
                   : '5-pair feature-level spatial fusion across the motor strip (C3-C4, C1-C2, FC3-FC4, CP3-CP4, C5-C6) with closed-form Ridge regression solver. Verified with 10-fold cross-validation.'}
@@ -134,24 +134,24 @@ export default function MetricCards({ metrics }) {
                 gridTemplateColumns: 'repeat(3, 1fr)',
                 gap: '12px',
                 paddingTop: '16px',
-                borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+                borderTop: '1.5px solid rgba(0, 0, 0, 0.1)',
               }}
             >
               <div>
-                <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', fontWeight: 600 }}>MACRO F1</div>
-                <div className="mono" style={{ fontSize: '1.1rem', fontWeight: 700, color: '#FFFFFF' }}>
+                <div style={{ fontSize: '0.7rem', color: '#7A263A', fontWeight: 800 }}>MACRO F1</div>
+                <div className="mono" style={{ fontSize: '1.1rem', fontWeight: 800, color: '#000000' }}>
                   <CountUp to={parseFloat(macroF1)} decimals={2} suffix="%" />
                 </div>
               </div>
               <div>
-                <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', fontWeight: 600 }}>MACRO AUC</div>
-                <div className="mono" style={{ fontSize: '1.1rem', fontWeight: 700, color: '#FFFFFF' }}>
+                <div style={{ fontSize: '0.7rem', color: '#7A263A', fontWeight: 800 }}>MACRO AUC</div>
+                <div className="mono" style={{ fontSize: '1.1rem', fontWeight: 800, color: '#000000' }}>
                   {macroAuc}
                 </div>
               </div>
               <div>
-                <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', fontWeight: 600 }}>PREC / REC</div>
-                <div className="mono" style={{ fontSize: '1.1rem', fontWeight: 700, color: '#E4E4E7' }}>
+                <div style={{ fontSize: '0.7rem', color: '#7A263A', fontWeight: 800 }}>PREC / REC</div>
+                <div className="mono" style={{ fontSize: '1.1rem', fontWeight: 800, color: '#000000' }}>
                   <CountUp to={parseFloat(macroPrec)} decimals={1} suffix="%" /> / <CountUp to={parseFloat(macroRec)} decimals={1} suffix="%" />
                 </div>
               </div>
@@ -164,10 +164,10 @@ export default function MetricCards({ metrics }) {
         <div style={{ gridColumn: 'span 5' }} className="bento-col-span-5">
           <SpotlightCard
             id="metric-card-latency"
-            spotlightColor="rgba(255, 255, 255, 0.08)"
-            borderColor="rgba(255, 255, 255, 0.1)"
-            hoverBorderColor="rgba(255, 255, 255, 0.35)"
-            style={{ padding: '26px', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}
+            spotlightColor="rgba(232, 197, 71, 0.25)"
+            borderColor="#000000"
+            hoverBorderColor="#000000"
+            style={{ padding: '26px', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: '#ffffff', border: '1.5px solid #000000', borderRadius: '16px' }}
           >
             <div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
@@ -177,16 +177,16 @@ export default function MetricCards({ metrics }) {
                       width: '34px',
                       height: '34px',
                       borderRadius: '10px',
-                      background: 'rgba(255, 255, 255, 0.08)',
-                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      background: '#E8C547',
+                      border: '1.5px solid #000000',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
                   >
-                    <Timer size={18} color="#FFFFFF" />
+                    <Timer size={18} color="#000000" />
                   </div>
-                  <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
+                  <span style={{ fontSize: '0.78rem', color: '#7A263A', fontWeight: 800 }}>
                     INFERENCE LATENCY
                   </span>
                 </div>
@@ -196,10 +196,10 @@ export default function MetricCards({ metrics }) {
                     fontSize: '0.68rem',
                     padding: '2px 8px',
                     borderRadius: '4px',
-                    background: 'rgba(255, 255, 255, 0.08)',
-                    color: '#FFFFFF',
-                    border: '1px solid rgba(255, 255, 255, 0.2)',
-                    fontWeight: 600,
+                    background: '#E8C547',
+                    color: '#000000',
+                    border: '1.5px solid #000000',
+                    fontWeight: 800,
                   }}
                 >
                   SUB-10MS
@@ -211,18 +211,17 @@ export default function MetricCards({ metrics }) {
                   className="mono"
                   style={{
                     fontSize: 'clamp(2.2rem, 3.5vw, 3rem)',
-                    fontWeight: 800,
-                    color: '#FFFFFF',
+                    fontWeight: 900,
+                    color: '#000000',
                     letterSpacing: '-0.03em',
                   }}
                 >
                   <CountUp to={parseFloat(latencyPerSample)} decimals={1} />
                 </span>
-                <span style={{ color: '#D4D4D8', fontWeight: 600, fontSize: '1.1rem' }}>ms / window</span>
+                <span style={{ color: '#000000', fontWeight: 700, fontSize: '1.1rem' }}>ms / window</span>
               </div>
 
-
-              <div style={{ fontSize: '0.85rem', color: '#A1A1AA', marginTop: '6px', lineHeight: 1.55 }}>
+              <div style={{ fontSize: '0.85rem', color: '#000000', marginTop: '6px', lineHeight: 1.55, fontWeight: 500 }}>
                 ~163 Hz continuous decision rate. Eliminates sensory lag for closed-loop BCI neuroprosthetics.
               </div>
             </div>
@@ -235,13 +234,14 @@ export default function MetricCards({ metrics }) {
                 marginTop: '18px',
                 padding: '10px 14px',
                 borderRadius: '8px',
-                background: 'rgba(255, 255, 255, 0.03)',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
+                background: '#f4faff',
+                border: '1.5px solid #000000',
                 fontSize: '0.76rem',
-                color: '#A1A1AA',
+                color: '#000000',
+                fontWeight: 700,
               }}
             >
-              <Zap size={14} color="#FFFFFF" />
+              <Zap size={14} color="#6FAF64" />
               <span>Zero GPU required · Real-time CPU vectorized convolution</span>
             </div>
           </SpotlightCard>
@@ -251,10 +251,10 @@ export default function MetricCards({ metrics }) {
         <div style={{ gridColumn: 'span 5' }} className="bento-col-span-5">
           <SpotlightCard
             id="metric-card-zero-leakage"
-            spotlightColor="rgba(255, 255, 255, 0.08)"
-            borderColor="rgba(255, 255, 255, 0.1)"
-            hoverBorderColor="rgba(255, 255, 255, 0.35)"
-            style={{ padding: '24px', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}
+            spotlightColor="rgba(111, 175, 100, 0.25)"
+            borderColor="#000000"
+            hoverBorderColor="#000000"
+            style={{ padding: '24px', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: '#ffffff', border: '1.5px solid #000000', borderRadius: '16px' }}
           >
             <div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
@@ -264,37 +264,37 @@ export default function MetricCards({ metrics }) {
                       width: '32px',
                       height: '32px',
                       borderRadius: '8px',
-                      background: 'rgba(255, 255, 255, 0.08)',
-                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      background: '#6FAF64',
+                      border: '1.5px solid #000000',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
                   >
-                    <ShieldCheck size={17} color="#FFFFFF" />
+                    <ShieldCheck size={17} color="#000000" />
                   </div>
-                  <span style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
+                  <span style={{ fontSize: '0.74rem', color: '#000000', fontWeight: 800 }}>
                     ZERO-LEAKAGE SCIENTIFIC RIGOR
                   </span>
                 </div>
-                <span className="mono" style={{ fontSize: '0.68rem', color: '#FFFFFF', fontWeight: 600 }}>
+                <span className="mono" style={{ fontSize: '0.68rem', color: '#000000', background: '#6FAF64', border: '1.5px solid #000000', padding: '2px 8px', borderRadius: '4px', fontWeight: 800 }}>
                   0.0% LEAKAGE
                 </span>
               </div>
 
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', margin: '8px 0' }}>
-                <span className="mono" style={{ fontSize: '2.2rem', fontWeight: 800, color: '#FFFFFF' }}>
+                <span className="mono" style={{ fontSize: '2.2rem', fontWeight: 900, color: '#000000' }}>
                   97.16%
                 </span>
-                <span style={{ fontSize: '0.82rem', color: '#A1A1AA' }}>CNN-LSTM vs 29.96% unregularized 1D</span>
+                <span style={{ fontSize: '0.82rem', color: '#7A263A', fontWeight: 700 }}>CNN-LSTM vs 29.96% unregularized 1D</span>
               </div>
 
-              <p style={{ fontSize: '0.84rem', color: '#A1A1AA', lineHeight: 1.55, margin: '6px 0 0 0' }}>
+              <p style={{ fontSize: '0.84rem', color: '#000000', lineHeight: 1.55, margin: '6px 0 0 0', fontWeight: 500 }}>
                 Strict trial-level partitioning with 0% sub-window leakage across train, val, and test splits. Eliminates artificial 99% scores caused by overlapping noise memorization.
               </p>
             </div>
 
-            <div style={{ fontSize: '0.75rem', color: '#D4D4D8', marginTop: '12px', fontWeight: 500 }}>
+            <div style={{ fontSize: '0.75rem', color: '#000000', marginTop: '12px', fontWeight: 700 }}>
               Dual AI champions verified: MiniRocket (97.41%) & CNN-LSTM (97.16%).
             </div>
           </SpotlightCard>
@@ -304,10 +304,10 @@ export default function MetricCards({ metrics }) {
         <div style={{ gridColumn: 'span 4' }} className="bento-col-span-4">
           <SpotlightCard
             id="metric-card-peak-subject"
-            spotlightColor="rgba(255, 255, 255, 0.08)"
-            borderColor="rgba(255, 255, 255, 0.1)"
-            hoverBorderColor="rgba(255, 255, 255, 0.35)"
-            style={{ padding: '24px', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}
+            spotlightColor="rgba(122, 38, 58, 0.2)"
+            borderColor="#000000"
+            hoverBorderColor="#000000"
+            style={{ padding: '24px', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: '#ffffff', border: '1.5px solid #000000', borderRadius: '16px' }}
           >
             <div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
@@ -317,35 +317,34 @@ export default function MetricCards({ metrics }) {
                       width: '32px',
                       height: '32px',
                       borderRadius: '8px',
-                      background: 'rgba(255, 255, 255, 0.08)',
-                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      background: '#7A263A',
+                      border: '1.5px solid #000000',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
                   >
-                    <TrendingUp size={17} color="#FFFFFF" />
+                    <TrendingUp size={17} color="#ffffff" />
                   </div>
-                  <span style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
+                  <span style={{ fontSize: '0.74rem', color: '#7A263A', fontWeight: 800 }}>
                     PEAK COHORT ACCURACY
                   </span>
                 </div>
-                <span className="mono" style={{ fontSize: '0.72rem', color: '#FFFFFF', fontWeight: 700 }}>
+                <span className="mono" style={{ fontSize: '0.72rem', color: '#000000', background: '#A7D8F5', border: '1.5px solid #000000', padding: '2px 8px', borderRadius: '4px', fontWeight: 800 }}>
                   {peakSubId}
                 </span>
               </div>
 
-              <div className="mono" style={{ fontSize: '2.2rem', fontWeight: 800, color: '#FFFFFF', margin: '8px 0' }}>
+              <div className="mono" style={{ fontSize: '2.2rem', fontWeight: 900, color: '#000000', margin: '8px 0' }}>
                 <CountUp to={parseFloat(peakSub)} decimals={2} suffix="%" />
               </div>
 
-
-              <div style={{ fontSize: '0.82rem', color: '#A1A1AA' }}>
+              <div style={{ fontSize: '0.82rem', color: '#000000', fontWeight: 600 }}>
                 S004: 100.0% · S002: 97.59% · S001: 96.73%
               </div>
             </div>
 
-            <div style={{ fontSize: '0.74rem', color: 'var(--text-tertiary)', marginTop: '12px' }}>
+            <div style={{ fontSize: '0.74rem', color: '#7A263A', marginTop: '12px', fontWeight: 700 }}>
               Highest contralateral mu rhythm suppression during bilateral movement.
             </div>
           </SpotlightCard>
@@ -355,10 +354,10 @@ export default function MetricCards({ metrics }) {
         <div style={{ gridColumn: 'span 3' }} className="bento-col-span-3">
           <SpotlightCard
             id="metric-card-params"
-            spotlightColor="rgba(255, 255, 255, 0.08)"
-            borderColor="rgba(255, 255, 255, 0.1)"
-            hoverBorderColor="rgba(255, 255, 255, 0.35)"
-            style={{ padding: '24px', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}
+            spotlightColor="rgba(167, 216, 245, 0.25)"
+            borderColor="#000000"
+            hoverBorderColor="#000000"
+            style={{ padding: '24px', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: '#ffffff', border: '1.5px solid #000000', borderRadius: '16px' }}
           >
             <div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
@@ -368,34 +367,34 @@ export default function MetricCards({ metrics }) {
                       width: '32px',
                       height: '32px',
                       borderRadius: '8px',
-                      background: 'rgba(255, 255, 255, 0.08)',
-                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      background: '#A7D8F5',
+                      border: '1.5px solid #000000',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
                   >
-                    <Layers size={17} color="#FFFFFF" />
+                    <Layers size={17} color="#000000" />
                   </div>
-                  <span style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
+                  <span style={{ fontSize: '0.74rem', color: '#000000', fontWeight: 800 }}>
                     PARAMETERS
                   </span>
                 </div>
-                <span className="mono" style={{ fontSize: '0.68rem', color: 'var(--text-tertiary)' }}>
+                <span className="mono" style={{ fontSize: '0.68rem', color: '#000000', background: '#A7D8F5', border: '1.5px solid #000000', padding: '2px 6px', borderRadius: '4px', fontWeight: 800 }}>
                   {metrics?.model_name === 'cnn_lstm' ? 'DEEP NEURAL' : 'CLOSED FORM'}
                 </span>
               </div>
 
-              <div className="mono" style={{ fontSize: '2.0rem', fontWeight: 800, color: '#FFFFFF', margin: '8px 0' }}>
+              <div className="mono" style={{ fontSize: '2.0rem', fontWeight: 900, color: '#000000', margin: '8px 0' }}>
                 {metrics?.model_name === 'cnn_lstm' ? '342,564' : paramsCount}
               </div>
 
-              <div style={{ fontSize: '0.82rem', color: '#A1A1AA' }}>
+              <div style={{ fontSize: '0.82rem', color: '#000000', fontWeight: 600 }}>
                 {metrics?.model_name === 'cnn_lstm' ? 'Conv1D + BiLSTM + Dense weights' : 'Ridge linear projection weights'}
               </div>
             </div>
 
-            <div style={{ fontSize: '0.74rem', color: '#FFFFFF', marginTop: '12px', fontWeight: 500 }}>
+            <div style={{ fontSize: '0.74rem', color: '#7A263A', marginTop: '12px', fontWeight: 700 }}>
               {metrics?.model_name === 'cnn_lstm' ? 'Spatio-Temporal Preserving' : 'Deterministic & Instant Training'}
             </div>
           </SpotlightCard>

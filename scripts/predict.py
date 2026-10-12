@@ -136,32 +136,44 @@ def predict_from_edf(
     if run_num in [1, 2]:
         print(f"NOTICE: {file_path.name} is a baseline run (R0{run_num}: {'Eyes Open' if run_num == 1 else 'Eyes Closed'}). It contains no motor task cue labels.")
 
+    loader = PhysioNetLoader()
+    ev_file = loader.find_event_file(file_path)
+
     # Extract 4s trials
     trial_data_list = []
     trial_labels = []
     trial_times = []
 
-    for ev in events:
-        t_sample = ev[0]
-        ev_id = ev[2]
-        ann = [k for k, v in event_dict.items() if v == ev_id][0]
-        if ann == "T0":
-            continue
+    if ev_file is not None:
+        print(f"Found companion event file: {ev_file.name}")
+        ev_trials = loader.extract_trials_from_event_file(ev_file, raw, run_num)
+        for t_sig, t_lab in ev_trials:
+            trial_data_list.append(t_sig)
+            trial_labels.append(t_lab)
+            trial_times.append(0.0)
 
-        target_class = -1
-        # Runs 03, 07, 11 (execution) & 04, 08, 12 (imagery): Left Fist (0) vs Right Fist (1)
-        if run_num in [3, 4, 7, 8, 11, 12]:
-            target_class = 0 if ann == "T1" else (1 if ann == "T2" else -1)
-        # Runs 05, 09, 13 (execution) & 06, 10, 14 (imagery): Both Fists (2) vs Both Feet (3)
-        elif run_num in [5, 6, 9, 10, 13, 14]:
-            target_class = 2 if ann == "T1" else (3 if ann == "T2" else -1)
+    if not trial_data_list:
+        for ev in events:
+            t_sample = ev[0]
+            ev_id = ev[2]
+            ann = [k for k, v in event_dict.items() if v == ev_id][0]
+            if ann == "T0":
+                continue
 
-        end_idx = int(t_sample + 4.0 * sfreq)
-        if end_idx <= raw_data.shape[1]:
-            trial_signal = raw_data[:, t_sample:end_idx]
-            trial_data_list.append(trial_signal)
-            trial_labels.append(target_class)
-            trial_times.append(t_sample / sfreq)
+            target_class = -1
+            # Runs 03, 07, 11 (execution) & 04, 08, 12 (imagery): Left Fist (0) vs Right Fist (1)
+            if run_num in [3, 4, 7, 8, 11, 12]:
+                target_class = 0 if ann == "T1" else (1 if ann == "T2" else -1)
+            # Runs 05, 09, 13 (execution) & 06, 10, 14 (imagery): Both Fists (2) vs Both Feet (3)
+            elif run_num in [5, 6, 9, 10, 13, 14]:
+                target_class = 2 if ann == "T1" else (3 if ann == "T2" else -1)
+
+            end_idx = int(t_sample + 4.0 * sfreq)
+            if end_idx <= raw_data.shape[1]:
+                trial_signal = raw_data[:, t_sample:end_idx]
+                trial_data_list.append(trial_signal)
+                trial_labels.append(target_class)
+                trial_times.append(t_sample / sfreq)
 
     if not trial_data_list:
         print("No motor imagery task intervals (T1/T2) found in annotations. Running sliding window inference across entire recording...")

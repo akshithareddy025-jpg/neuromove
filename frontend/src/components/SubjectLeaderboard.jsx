@@ -43,7 +43,7 @@ export default function SubjectLeaderboard({ leaderboardData, _metricsData }) {
       subject_id: sub.subject_id,
       accuracy: acc,
       isPeak,
-      color: isPeak ? '#10B981' : '#38BDF8',
+      color: isPeak ? '#FFFFFF' : '#71717A',
     };
   });
 
@@ -205,13 +205,13 @@ export default function SubjectLeaderboard({ leaderboardData, _metricsData }) {
                     <td className="mono" style={{
                       padding: '12px 14px',
                       fontWeight: 800,
-                      color: isStrong ? 'var(--accent-emerald)' : 'var(--text-primary)',
+                      color: isStrong ? '#FFFFFF' : 'var(--text-primary)',
                       fontSize: '0.98rem'
                     }}>
                       {accPct}%
                     </td>
 
-                    <td className="mono" style={{ padding: '12px 14px', color: delta >= 0 ? 'var(--accent-cyan)' : 'var(--accent-rose)' }}>
+                    <td className="mono" style={{ padding: '12px 14px', color: delta >= 0 ? '#FFFFFF' : '#A1A1AA' }}>
                       {delta >= 0 ? `+${delta}%` : `${delta}%`}
                     </td>
 

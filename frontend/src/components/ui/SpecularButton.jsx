@@ -2,7 +2,8 @@ import React, { useRef, useState } from 'react';
 
 /**
  * SpecularButton
- * Luxury glassmorphic CTA button with specular radial highlight reflection following cursor coordinates.
+ * Premium pill CTA with restrained specular highlight + subtle magnetic pull.
+ * Magnetic max is a few px with spring-back; never chases the cursor.
  */
 export default function SpecularButton({
   children,
@@ -15,6 +16,7 @@ export default function SpecularButton({
 }) {
   const [pos, setPos] = useState({ x: 50, y: 50 });
   const [isHovered, setIsHovered] = useState(false);
+  const [magnet, setMagnet] = useState({ x: 0, y: 0 });
   const btnRef = useRef(null);
 
   const handlePointerMove = (e) => {
@@ -23,6 +25,20 @@ export default function SpecularButton({
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
     setPos({ x, y });
+    // Subtle magnetic pull toward cursor, clamped to a few px. Disabled on
+    // coarse pointers via matchMedia check at event time (cheap, no listeners).
+    if (window.matchMedia?.('(pointer: coarse)').matches) return;
+    const dx = e.clientX - (rect.left + rect.width / 2);
+    const dy = e.clientY - (rect.top + rect.height / 2);
+    setMagnet({
+      x: Math.max(-6, Math.min(6, dx * 0.08)),
+      y: Math.max(-4, Math.min(4, dy * 0.1)),
+    });
+  };
+
+  const handleLeave = () => {
+    setIsHovered(false);
+    setMagnet({ x: 0, y: 0 });
   };
 
   const getBg = () => {
@@ -46,7 +62,7 @@ export default function SpecularButton({
       disabled={disabled}
       onPointerMove={handlePointerMove}
       onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseLeave={handleLeave}
       className={`specular-button ${className}`}
       style={{
         position: 'relative',
@@ -54,7 +70,8 @@ export default function SpecularButton({
         alignItems: 'center',
         justifyContent: 'center',
         gap: '8px',
-        padding: '12px 24px',
+        minHeight: '50px',
+        padding: '0 24px',
         borderRadius: '9999px',
         fontSize: '0.88rem',
         fontWeight: 700,
@@ -62,12 +79,12 @@ export default function SpecularButton({
         background: getBg(),
         border: '1px solid rgba(255, 255, 255, 0.35)',
         boxShadow: isHovered
-          ? '0 12px 28px rgba(255, 255, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.8)'
-          : '0 4px 14px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.4)',
+          ? '0 14px 30px rgba(20, 35, 24, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.8)'
+          : '0 6px 20px rgba(20, 35, 24, 0.10), inset 0 1px 0 rgba(255, 255, 255, 0.4)',
         cursor: disabled ? 'not-allowed' : 'pointer',
         overflow: 'hidden',
-        transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
-        transform: isHovered && !disabled ? 'translateY(-2px) scale(1.02)' : 'none',
+        transition: 'transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s ease, background 0.2s ease',
+        transform: isHovered && !disabled ? `translate3d(${magnet.x}px, ${magnet.y - 2}px, 0)` : 'none',
         ...style,
       }}
     >

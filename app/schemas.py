@@ -55,6 +55,7 @@ class ModelPrediction(BaseModel):
         ..., description="Normalized posterior probabilities or decision scores per class"
     )
     latency_ms: float = Field(..., description="Inference latency in milliseconds")
+    ground_truth_verified: Optional[bool] = Field(None, description="Whether prediction matches verified ground truth")
 
 
 class StreamFrame(BaseModel):

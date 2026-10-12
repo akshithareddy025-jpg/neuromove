@@ -11,6 +11,7 @@ export default function Lanyard({
   id = 'BCI-09741-LEAKAGE-FREE',
   affiliation = 'NeuroImage 328 (2026) · PhysioNet',
   status = 'VERIFIED STRATIFIED',
+  isLightMode = false,
   className = '',
   style = {},
 }) {
@@ -99,12 +100,12 @@ export default function Lanyard({
         <path
           d={`M 80,0 Q ${80 + pos.x * 0.4},${35 + pos.y * 0.4} ${80 + pos.x},${65 + pos.y}`}
           fill="none"
-          stroke="rgba(255, 255, 255, 0.45)"
+          stroke={isLightMode ? 'rgba(244, 114, 182, 0.85)' : 'rgba(255, 255, 255, 0.45)'}
           strokeWidth="3.5"
           strokeDasharray="4 2"
         />
         {/* Metal Lanyard Clip */}
-        <circle cx={80 + pos.x} cy={65 + pos.y} r="5" fill="#FFFFFF" />
+        <circle cx={80 + pos.x} cy={65 + pos.y} r="5" fill={isLightMode ? '#09090b' : '#FFFFFF'} />
       </svg>
 
       {/* Hanging ID Card */}
@@ -112,17 +113,25 @@ export default function Lanyard({
         onPointerDown={onPointerDown}
         style={{
           width: '240px',
-          background: 'linear-gradient(135deg, rgba(30, 30, 40, 0.95), rgba(15, 15, 22, 0.98))',
-          border: '1px solid rgba(255, 255, 255, 0.25)',
+          background: isLightMode
+            ? 'linear-gradient(145deg, #ffffff 0%, #fdf2f8 50%, #fce7f3 100%)'
+            : 'linear-gradient(135deg, rgba(24, 24, 28, 0.98), rgba(10, 10, 14, 0.99))',
+          border: isLightMode
+            ? '1.5px solid rgba(244, 114, 182, 0.35)'
+            : '1px solid rgba(255, 255, 255, 0.25)',
           borderRadius: '14px',
           padding: '16px',
           boxShadow: isDragging
-            ? '0 24px 48px rgba(0, 0, 0, 0.7), 0 0 20px rgba(255, 255, 255, 0.25)'
-            : '0 12px 32px rgba(0, 0, 0, 0.5)',
+            ? (isLightMode
+              ? '0 30px 60px rgba(244, 114, 182, 0.25), 0 4px 16px rgba(249, 115, 22, 0.12)'
+              : '0 24px 48px rgba(0, 0, 0, 0.7), 0 0 20px rgba(56, 189, 248, 0.35)')
+            : (isLightMode
+              ? '0 18px 40px rgba(244, 114, 182, 0.16), 0 2px 10px rgba(249, 115, 22, 0.08)'
+              : '0 12px 32px rgba(0, 0, 0, 0.5)'),
           cursor: isDragging ? 'grabbing' : 'grab',
           transform: `translate3d(${pos.x}px, ${pos.y - 12}px, 0) rotate(${angle}deg) rotateY(${pos.x * 0.15}deg)`,
           transformOrigin: 'top center',
-          transition: isDragging ? 'none' : 'box-shadow 0.2s ease',
+          transition: isDragging ? 'none' : 'box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
           willChange: 'transform',
         }}
       >
@@ -131,18 +140,25 @@ export default function Lanyard({
           style={{
             width: '28px',
             height: '6px',
-            background: '#000000',
+            background: isLightMode ? '#09090b' : '#000000',
             borderRadius: '4px',
             margin: '0 auto 12px auto',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
+            border: isLightMode ? '1px solid rgba(0, 0, 0, 0.15)' : '1px solid rgba(255, 255, 255, 0.2)',
           }}
         />
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Cpu size={15} color="#FFFFFF" />
-            <span style={{ fontSize: '0.72rem', fontWeight: 800, letterSpacing: '0.08em', color: '#FFFFFF' }}>
+            <Cpu size={15} color={isLightMode ? '#ea580c' : '#38bdf8'} />
+            <span
+              style={{
+                fontSize: '0.72rem',
+                fontWeight: 800,
+                letterSpacing: '0.08em',
+                color: isLightMode ? '#09090b' : '#FFFFFF',
+              }}
+            >
               NEUROMOVE
             </span>
           </div>
@@ -150,53 +166,58 @@ export default function Lanyard({
             style={{
               fontSize: '0.62rem',
               fontWeight: 700,
-              padding: '2px 6px',
+              padding: '2px 7px',
               borderRadius: '4px',
-              background: 'rgba(16, 185, 129, 0.2)',
-              border: '1px solid #10B981',
-              color: '#10B981',
+              background: isLightMode ? '#09090b' : 'rgba(56, 189, 248, 0.15)',
+              border: isLightMode ? '1px solid rgba(0, 0, 0, 0.2)' : '1px solid rgba(56, 189, 248, 0.35)',
+              color: '#FFFFFF',
             }}
           >
             {status}
           </span>
         </div>
 
-        {/* Holographic Chip / Avatar */}
+        {/* Shining Black Chip / Avatar */}
         <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '14px' }}>
           <div
             style={{
               width: '42px',
               height: '42px',
               borderRadius: '8px',
-              background: 'linear-gradient(135deg, #38BDF8, #60A5FA, #10B981)',
+              background: isLightMode
+                ? 'linear-gradient(135deg, #09090b 0%, #27272a 100%)'
+                : 'linear-gradient(135deg, #38bdf8, #818cf8, #f472b6)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 0 12px rgba(56, 189, 248, 0.4)',
+              boxShadow: isLightMode
+                ? '0 4px 12px rgba(0, 0, 0, 0.25)'
+                : '0 0 14px rgba(56, 189, 248, 0.35)',
             }}
           >
-            <Award size={22} color="#000000" />
+            <Award size={22} color="#ffffff" />
           </div>
           <div>
-            <div style={{ fontSize: '0.76rem', fontWeight: 800, color: '#FFFFFF' }}>{name}</div>
-            <div style={{ fontSize: '0.66rem', color: 'var(--text-tertiary)', fontFamily: 'monospace' }}>{id}</div>
+            <div style={{ fontSize: '0.76rem', fontWeight: 800, color: isLightMode ? '#09090b' : '#FFFFFF' }}>{name}</div>
+            <div style={{ fontSize: '0.66rem', color: isLightMode ? '#64748b' : 'var(--text-tertiary)', fontFamily: 'monospace' }}>{id}</div>
           </div>
         </div>
 
         {/* Card Spec Details */}
         <div
           style={{
-            background: 'rgba(255, 255, 255, 0.04)',
+            background: isLightMode ? 'rgba(255, 255, 255, 0.88)' : 'rgba(255, 255, 255, 0.04)',
+            border: isLightMode ? '1px solid rgba(244, 114, 182, 0.25)' : 'none',
             borderRadius: '6px',
             padding: '8px 10px',
             fontSize: '0.68rem',
-            color: 'var(--text-secondary)',
+            color: isLightMode ? '#475569' : 'var(--text-secondary)',
             lineHeight: 1.4,
             marginBottom: '10px',
           }}
         >
           <div>{affiliation}</div>
-          <div style={{ color: '#FFFFFF', fontWeight: 600, marginTop: '2px' }}>
+          <div style={{ color: isLightMode ? '#09090b' : '#FFFFFF', fontWeight: 700, marginTop: '2px' }}>
             64-Ch · 109 Subjects · Zero Leakage
           </div>
         </div>
@@ -210,12 +231,12 @@ export default function Lanyard({
                 style={{
                   width: `${(i % 3) + 1}px`,
                   height: `${h * 2.2}px`,
-                  background: 'rgba(255, 255, 255, 0.65)',
+                  background: isLightMode ? 'rgba(15, 23, 42, 0.7)' : 'rgba(255, 255, 255, 0.65)',
                 }}
               />
             ))}
           </div>
-          <ShieldCheck size={14} color="#10B981" />
+          <ShieldCheck size={14} color={isLightMode ? '#0284c7' : '#38bdf8'} />
         </div>
       </div>
     </div>

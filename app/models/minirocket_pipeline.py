@@ -225,6 +225,7 @@ class MiniRocketPipeline:
         alphas: Optional[np.ndarray] = None,
         random_state: int = 42,
         is_spatial_fusion: Optional[bool] = None,
+        class_weight: Optional[Union[str, Dict[int, float]]] = "balanced",
     ):
         self.num_kernels = num_kernels
         self.kernels_per_pair = kernels_per_pair
@@ -232,6 +233,7 @@ class MiniRocketPipeline:
         self.random_state = random_state
         self.alphas = alphas if alphas is not None else np.logspace(-1, 6, 25)
         self.is_spatial_fusion = is_spatial_fusion
+        self.class_weight = class_weight
 
         # Single-sequence transformer
         self.transformer = MiniRocketTransform(
@@ -242,7 +244,7 @@ class MiniRocketPipeline:
         # 5-pair spatial fusion transformers
         self.transformers: List[MiniRocketTransform] = []
         self.scaler = StandardScaler()
-        self.classifier = RidgeClassifierCV(alphas=self.alphas)
+        self.classifier = RidgeClassifierCV(alphas=self.alphas, class_weight=self.class_weight)
         self.classes_: Optional[np.ndarray] = None
         self.is_trained: bool = False
 
@@ -309,8 +311,8 @@ class MiniRocketPipeline:
         # 2. Scale features
         X_scaled = self.scaler.fit_transform(X_feats)
 
-        # Use Generalized Cross-Validation (cv=None) for analytic closed-form SVD solve
-        self.classifier = RidgeClassifierCV(alphas=self.alphas, cv=None)
+        # Use Generalized Cross-Validation (cv=None) for analytic closed-form SVD solve with balanced class weighting
+        self.classifier = RidgeClassifierCV(alphas=self.alphas, cv=None, class_weight=self.class_weight)
         self.classifier.fit(X_scaled, y)
         self.classes_ = np.unique(y)
         self.is_trained = True
@@ -398,6 +400,7 @@ class MiniRocketPipeline:
                 "scaler": self.scaler,
                 "classifier": self.classifier,
                 "classes_": self.classes_,
+                "class_weight": self.class_weight,
                 "is_trained": self.is_trained,
             },
             path,
@@ -423,6 +426,7 @@ class MiniRocketPipeline:
         self.kernels_per_pair = data.get("kernels_per_pair", 2000)
         self.max_dilations = data.get("max_dilations", 28)
         self.is_spatial_fusion = data.get("is_spatial_fusion", False)
+        self.class_weight = data.get("class_weight", "balanced")
         self.transformer = data.get("transformer", None)
         self.transformers = data.get("transformers", [])
         self.scaler = data["scaler"]

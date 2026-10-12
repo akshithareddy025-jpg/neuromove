@@ -30,7 +30,7 @@ function GithubIcon({ size = 15, color = 'currentColor' }) {
  * Highlights the core research and engineering contributors behind NeuroMove 2.0.
  * Displays GitHub handles, roles, and concrete codebase contributions.
  */
-export default function TeamSection() {
+export default function TeamSection({ isLightMode = true }) {
   const contributors = [
     {
       name: 'Rohan Vemula',
@@ -39,7 +39,7 @@ export default function TeamSection() {
       githubUrl: 'https://github.com/rohanvemula279-star',
       avatarUrl: 'https://github.com/rohanvemula279-star.png',
       badge: 'Core Maintainer',
-      badgeColor: '#10B981',
+      accentColor: '#db2777',
       icon: Cpu,
       contributions: [
         'Designed end-to-end NeuroMove 2.0 dual-champion architecture',
@@ -55,7 +55,7 @@ export default function TeamSection() {
       githubUrl: 'https://github.com/SudhasriA',
       avatarUrl: 'https://github.com/SudhasriA.png',
       badge: 'Champion Model #1',
-      badgeColor: '#34D399',
+      accentColor: '#0284c7',
       icon: Brain,
       contributions: [
         'Engineered 5-pair motor cortex MiniRocket spatial fusion (app/models/minirocket_pipeline.py)',
@@ -71,7 +71,7 @@ export default function TeamSection() {
       githubUrl: 'https://github.com/nakshathrav2007-hash',
       avatarUrl: 'https://github.com/nakshathrav2007-hash.png',
       badge: 'Champion Model #2',
-      badgeColor: '#38BDF8',
+      accentColor: '#9333ea',
       icon: Sparkles,
       contributions: [
         'Designed spatio-temporal deep neural network (app/models/cnn_lstm.py)',
@@ -87,7 +87,7 @@ export default function TeamSection() {
       githubUrl: 'https://github.com/akshithareddy025-jpg',
       avatarUrl: 'https://github.com/akshithareddy025-jpg.png',
       badge: 'Neurophysiology DSP',
-      badgeColor: '#F59E0B',
+      accentColor: '#059669',
       icon: Activity,
       contributions: [
         'Zero-phase 4th-order Butterworth bandpass filter for 8–30 Hz μ/β rhythm (app/data/preprocessing.py)',
@@ -103,7 +103,7 @@ export default function TeamSection() {
       githubUrl: 'https://github.com/sahasramarikanti-cpu',
       avatarUrl: 'https://github.com/sahasramarikanti-cpu.png',
       badge: 'Streaming & UI',
-      badgeColor: '#A855F7',
+      accentColor: '#ea580c',
       icon: Layers,
       contributions: [
         'Engineered FastAPI 2.0 WebSocket telemetry streaming server (app/routers/stream.py)',
@@ -132,31 +132,36 @@ export default function TeamSection() {
             className="mono"
             style={{
               fontSize: '0.74rem',
-              color: '#10B981',
-              fontWeight: 700,
+              color: isLightMode ? '#ea580c' : '#FFFFFF',
+              fontWeight: 800,
               textTransform: 'uppercase',
               letterSpacing: '0.08em',
-              display: 'flex',
+              display: 'inline-flex',
               alignItems: 'center',
               gap: '6px',
+              background: isLightMode ? 'rgba(234, 88, 12, 0.1)' : 'rgba(255, 255, 255, 0.1)',
+              padding: '3px 10px',
+              borderRadius: '6px',
+              marginBottom: '6px',
             }}
           >
             <Code2 size={13} />
-            Research Team & Open-Source Contributors
+            RESEARCH TEAM & OPEN-SOURCE CONTRIBUTORS
           </span>
           <h2
+            className={isLightMode ? 'shining-black-heading' : ''}
             style={{
               fontSize: 'clamp(1.75rem, 3.2vw, 2.5rem)',
-              fontWeight: 700,
-              color: '#FFFFFF',
+              fontWeight: 900,
+              color: isLightMode ? '#09090b' : '#FFFFFF',
               letterSpacing: '-0.03em',
-              margin: '10px 0 12px 0',
+              margin: '8px 0 12px 0',
               lineHeight: 1.2,
             }}
           >
             The Minds Behind NeuroMove 2.0
           </h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.96rem', lineHeight: 1.6, margin: 0 }}>
+          <p style={{ color: isLightMode ? '#334155' : 'var(--text-secondary)', fontSize: '0.96rem', lineHeight: 1.6, margin: 0 }}>
             Meet the engineers and neuroimaging researchers who formulated the dual-champion motor imagery decoders,
             zero-phase DSP pipelines, and real-time telemetry architecture.
           </p>
@@ -170,20 +175,29 @@ export default function TeamSection() {
             display: 'inline-flex',
             alignItems: 'center',
             gap: '8px',
-            padding: '8px 16px',
+            padding: '10px 20px',
             borderRadius: '9999px',
-            fontSize: '0.82rem',
-            fontWeight: 600,
-            background: 'rgba(255, 255, 255, 0.06)',
-            border: '1px solid rgba(255, 255, 255, 0.15)',
-            color: '#FFFFFF',
+            fontSize: '0.84rem',
+            fontWeight: 700,
+            background: isLightMode ? '#ffffff' : 'rgba(255, 255, 255, 0.06)',
+            border: isLightMode ? '1.5px solid rgba(244, 114, 182, 0.35)' : '1px solid rgba(255, 255, 255, 0.15)',
+            color: isLightMode ? '#09090b' : '#FFFFFF',
             textDecoration: 'none',
+            boxShadow: isLightMode ? '0 4px 14px rgba(0, 0, 0, 0.06)' : 'none',
             transition: 'all 0.2s ease',
           }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-2px)';
+            if (isLightMode) e.currentTarget.style.borderColor = '#db2777';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(0)';
+            if (isLightMode) e.currentTarget.style.borderColor = 'rgba(244, 114, 182, 0.35)';
+          }}
         >
-          <GithubIcon size={15} color="#FFFFFF" />
+          <GithubIcon size={15} color={isLightMode ? '#09090b' : '#FFFFFF'} />
           <span>View CONTRIBUTORS.md</span>
-          <ExternalLink size={12} color="#A1A1AA" />
+          <ExternalLink size={12} color={isLightMode ? '#64748b' : '#A1A1AA'} />
         </a>
       </div>
 
@@ -192,7 +206,7 @@ export default function TeamSection() {
         style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-          gap: '20px',
+          gap: '22px',
         }}
       >
         {contributors.map((member) => {
@@ -200,18 +214,19 @@ export default function TeamSection() {
           return (
             <SpotlightCard
               key={member.handle}
-              spotlightColor="rgba(255, 255, 255, 0.08)"
+              spotlightColor={isLightMode ? 'rgba(244, 114, 182, 0.15)' : 'rgba(255, 255, 255, 0.08)'}
               className="card"
               style={{
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',
-                padding: '24px',
+                padding: '26px',
                 position: 'relative',
-                background: 'linear-gradient(180deg, rgba(20, 20, 20, 0.8) 0%, rgba(10, 10, 10, 0.95) 100%)',
-                border: '1px solid rgba(255, 255, 255, 0.12)',
+                background: isLightMode ? 'rgba(255, 255, 255, 0.96)' : 'linear-gradient(180deg, rgba(20, 20, 20, 0.8) 0%, rgba(10, 10, 10, 0.95) 100%)',
+                border: isLightMode ? '1.5px solid rgba(244, 114, 182, 0.3)' : '1px solid rgba(255, 255, 255, 0.12)',
                 borderRadius: '18px',
-                transition: 'transform 0.2s ease, border-color 0.2s ease',
+                boxShadow: isLightMode ? '0 16px 36px -8px rgba(244, 114, 182, 0.14)' : undefined,
+                transition: 'transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease',
               }}
             >
               <div>
@@ -223,15 +238,15 @@ export default function TeamSection() {
                         src={member.avatarUrl}
                         alt={member.name}
                         onError={(e) => {
-                          e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&background=18181b&color=ffffff&bold=true`;
+                          e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&background=fce7f3&color=db2777&bold=true`;
                         }}
                         style={{
                           width: '52px',
                           height: '52px',
                           borderRadius: '14px',
                           objectFit: 'cover',
-                          border: '1px solid rgba(255, 255, 255, 0.2)',
-                          boxShadow: '0 4px 14px rgba(0, 0, 0, 0.5)',
+                          border: isLightMode ? '1.5px solid rgba(244, 114, 182, 0.4)' : '1px solid rgba(255, 255, 255, 0.2)',
+                          boxShadow: '0 4px 14px rgba(0, 0, 0, 0.12)',
                         }}
                       />
                       <div
@@ -242,20 +257,21 @@ export default function TeamSection() {
                           width: '20px',
                           height: '20px',
                           borderRadius: '50%',
-                          background: '#09090B',
-                          border: `1px solid ${member.badgeColor}`,
+                          background: isLightMode ? '#ffffff' : '#09090B',
+                          border: `1.5px solid ${member.accentColor}`,
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
+                          boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
                         }}
                       >
-                        <Icon size={11} color={member.badgeColor} />
+                        <Icon size={11} color={member.accentColor} />
                       </div>
                     </div>
 
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#FFFFFF', margin: 0 }}>
+                        <h3 style={{ fontSize: '1.08rem', fontWeight: 800, color: isLightMode ? '#09090b' : '#FFFFFF', margin: 0 }}>
                           {member.name}
                         </h3>
                       </div>
@@ -266,15 +282,16 @@ export default function TeamSection() {
                         className="mono"
                         style={{
                           fontSize: '0.78rem',
-                          color: '#A1A1AA',
+                          color: isLightMode ? '#0284c7' : '#A1A1AA',
                           textDecoration: 'none',
                           display: 'inline-flex',
                           alignItems: 'center',
                           gap: '4px',
                           marginTop: '2px',
+                          fontWeight: 600,
                         }}
-                        onMouseEnter={(e) => (e.currentTarget.style.color = '#FFFFFF')}
-                        onMouseLeave={(e) => (e.currentTarget.style.color = '#A1A1AA')}
+                        onMouseEnter={(e) => (e.currentTarget.style.color = isLightMode ? '#0369a1' : '#FFFFFF')}
+                        onMouseLeave={(e) => (e.currentTarget.style.color = isLightMode ? '#0284c7' : '#A1A1AA')}
                       >
                         @{member.handle}
                         <ExternalLink size={10} />
@@ -286,12 +303,12 @@ export default function TeamSection() {
                     className="mono"
                     style={{
                       fontSize: '0.68rem',
-                      fontWeight: 700,
-                      padding: '3px 8px',
+                      fontWeight: 800,
+                      padding: '3px 9px',
                       borderRadius: '6px',
-                      background: 'rgba(255, 255, 255, 0.05)',
-                      color: member.badgeColor,
-                      border: `1px solid ${member.badgeColor}40`,
+                      background: isLightMode ? '#fdf2f8' : 'rgba(255, 255, 255, 0.05)',
+                      color: member.accentColor,
+                      border: `1px solid ${member.accentColor}50`,
                       whiteSpace: 'nowrap',
                     }}
                   >
@@ -302,9 +319,9 @@ export default function TeamSection() {
                 {/* Role Title */}
                 <div
                   style={{
-                    fontSize: '0.86rem',
-                    fontWeight: 600,
-                    color: '#E4E4E7',
+                    fontSize: '0.88rem',
+                    fontWeight: 700,
+                    color: isLightMode ? '#1e293b' : '#E4E4E7',
                     marginBottom: '14px',
                   }}
                 >
@@ -319,9 +336,9 @@ export default function TeamSection() {
                       fontSize: '0.68rem',
                       textTransform: 'uppercase',
                       letterSpacing: '0.06em',
-                      color: 'var(--text-tertiary)',
+                      color: isLightMode ? '#64748b' : 'var(--text-tertiary)',
                       marginBottom: '8px',
-                      fontWeight: 700,
+                      fontWeight: 800,
                     }}
                   >
                     Key Subsystem Contributions:
@@ -333,7 +350,7 @@ export default function TeamSection() {
                       margin: 0,
                       display: 'flex',
                       flexDirection: 'column',
-                      gap: '7px',
+                      gap: '8px',
                     }}
                   >
                     {member.contributions.map((c, i) => (
@@ -343,17 +360,17 @@ export default function TeamSection() {
                           display: 'flex',
                           alignItems: 'flex-start',
                           gap: '8px',
-                          fontSize: '0.81rem',
-                          lineHeight: 1.45,
-                          color: 'var(--text-secondary)',
+                          fontSize: '0.82rem',
+                          lineHeight: 1.5,
+                          color: isLightMode ? '#334155' : 'var(--text-secondary)',
                         }}
                       >
                         <span
                           style={{
-                            width: '5px',
-                            height: '5px',
+                            width: '6px',
+                            height: '6px',
                             borderRadius: '50%',
-                            background: member.badgeColor,
+                            background: member.accentColor,
                             marginTop: '6px',
                             flexShrink: 0,
                           }}
@@ -373,21 +390,21 @@ export default function TeamSection() {
                     flexWrap: 'wrap',
                     gap: '6px',
                     paddingTop: '14px',
-                    borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+                    borderTop: isLightMode ? '1px solid rgba(244, 114, 182, 0.2)' : '1px solid rgba(255, 255, 255, 0.08)',
                     marginBottom: '14px',
                   }}
                 >
                   {member.tags.map((tag) => (
                     <span
                       key={tag}
-                      className="mono"
                       style={{
-                        fontSize: '0.68rem',
+                        fontSize: '0.7rem',
+                        fontWeight: 600,
                         padding: '2px 8px',
                         borderRadius: '4px',
-                        background: 'rgba(255, 255, 255, 0.04)',
-                        color: '#A1A1AA',
-                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        background: isLightMode ? '#fdf2f8' : 'rgba(255, 255, 255, 0.04)',
+                        border: isLightMode ? '1px solid rgba(244, 114, 182, 0.25)' : '1px solid rgba(255, 255, 255, 0.08)',
+                        color: isLightMode ? '#475569' : '#D4D4D8',
                       }}
                     >
                       {tag}
@@ -400,32 +417,20 @@ export default function TeamSection() {
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{
-                    width: '100%',
-                    display: 'flex',
+                    display: 'inline-flex',
                     alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '8px',
-                    padding: '8px 12px',
-                    borderRadius: '8px',
-                    background: 'rgba(255, 255, 255, 0.06)',
-                    border: '1px solid rgba(255, 255, 255, 0.14)',
-                    color: '#FFFFFF',
-                    fontSize: '0.82rem',
-                    fontWeight: 600,
+                    gap: '6px',
+                    fontSize: '0.78rem',
+                    fontWeight: 700,
+                    color: isLightMode ? '#0284c7' : '#FFFFFF',
                     textDecoration: 'none',
-                    transition: 'all 0.2s ease',
+                    transition: 'gap 0.15s ease',
                   }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.12)';
-                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)';
-                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.14)';
-                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.gap = '9px')}
+                  onMouseLeave={(e) => (e.currentTarget.style.gap = '6px')}
                 >
-                  <GithubIcon size={14} color="#FFFFFF" />
-                  <span>GitHub Profile</span>
+                  <span>View GitHub Profile</span>
+                  <ExternalLink size={12} />
                 </a>
               </div>
             </SpotlightCard>

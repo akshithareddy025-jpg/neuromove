@@ -15,7 +15,7 @@ export default function AccordionGallery({
       band: 'Mu Band (8–12 Hz)',
       desc: 'Central sensorimotor hand knob differential pair. Captures lateralized event-related desynchronization (ERD).',
       metric: '0.94 F1-Score',
-      color: '#38BDF8',
+      color: '#FFFFFF',
       freqRange: '8.0 - 12.0 Hz',
     },
     {
@@ -25,7 +25,7 @@ export default function AccordionGallery({
       band: 'Motor Planning (10–14 Hz)',
       desc: 'Anterior pre-motor electrodes providing anticipatory phase dynamics prior to motor imagery execution.',
       metric: '0.96 F1-Score',
-      color: '#60A5FA',
+      color: '#E4E4E7',
       freqRange: '10.0 - 14.0 Hz',
     },
     {
@@ -35,7 +35,7 @@ export default function AccordionGallery({
       band: 'High-Beta (18–24 Hz)',
       desc: 'Tight inter-electrode spacing delivering superior spatial gradient resolution with minimal volume conduction.',
       metric: '0.98 F1-Score',
-      color: '#10B981',
+      color: '#D4D4D8',
       freqRange: '18.0 - 24.0 Hz',
     },
     {
@@ -45,7 +45,7 @@ export default function AccordionGallery({
       band: 'Post-Movement Beta (20–30 Hz)',
       desc: 'Parietal sensory integration channels sensitive to afferent motor inhibition and foot imagery.',
       metric: '0.97 F1-Score',
-      color: '#34D399',
+      color: '#A1A1AA',
       freqRange: '20.0 - 30.0 Hz',
     },
     {
@@ -55,7 +55,7 @@ export default function AccordionGallery({
       band: 'SMR Lateral Flank (8–30 Hz)',
       desc: 'Wide lateral differential pair establishing global common-mode reference rejection.',
       metric: '0.95 F1-Score',
-      color: '#F43F5E',
+      color: '#71717A',
       freqRange: '8.0 - 30.0 Hz',
     },
   ],

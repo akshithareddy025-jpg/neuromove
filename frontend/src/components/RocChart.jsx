@@ -12,9 +12,14 @@ import {
 import { TrendingUp } from 'lucide-react';
 import { CLASS_MAPPING } from '../api/client';
 
-export default function RocChart({ rocCurves = {}, rocAuc = {} }) {
+export default function RocChart({
+  rocCurves = {},
+  rocAuc = {},
+  isLightMode = true,
+  className = '',
+  style = {},
+}) {
   // Transform ROC curves into point array for Recharts
-  // Sample 21 points along FPR from 0 to 1.0
   const fprs = [0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0];
 
   const interpolateTpr = (curve, targetFpr) => {
@@ -41,63 +46,94 @@ export default function RocChart({ rocCurves = {}, rocAuc = {} }) {
   });
 
   return (
-    <div className="card" id="roc-chart-card" style={{ height: '100%' }}>
+    <div
+      className={`card ${className}`}
+      id="roc-chart-card"
+      style={{
+        height: '100%',
+        background: isLightMode ? 'rgba(255, 255, 255, 0.96)' : undefined,
+        border: isLightMode ? '1.5px solid rgba(244, 114, 182, 0.3)' : undefined,
+        boxShadow: isLightMode ? '0 16px 36px -8px rgba(244, 114, 182, 0.15)' : undefined,
+        ...style,
+      }}
+    >
       <div className="card-header">
         <div>
-          <h3 className="card-title" style={{ fontSize: '1.05rem' }}>
-            <TrendingUp size={18} color="#FFFFFF" />
+          <h3
+            className={`card-title ${isLightMode ? 'shining-black-heading' : ''}`}
+            style={{
+              fontSize: '1.05rem',
+              color: isLightMode ? '#09090b' : '#ffffff',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+            }}
+          >
+            <TrendingUp size={18} color={isLightMode ? '#db2777' : '#FFFFFF'} />
             Receiver Operating Characteristic (ROC) Curves
           </h3>
-          <p className="card-subtitle">
+          <p className="card-subtitle" style={{ color: isLightMode ? '#64748b' : undefined }}>
             True Positive Rate vs False Positive Rate per motor imagery class
           </p>
         </div>
 
         <div className="mono" style={{
-          background: 'rgba(255, 255, 255, 0.08)',
-          padding: '4px 10px',
-          borderRadius: 'var(--radius-sm)',
+          background: isLightMode ? '#fdf2f8' : 'rgba(255, 255, 255, 0.08)',
+          padding: '4px 12px',
+          borderRadius: 'var(--radius-sm, 8px)',
           fontSize: '0.78rem',
-          color: '#FFFFFF',
-          border: '1px solid rgba(255, 255, 255, 0.2)'
+          color: isLightMode ? '#09090b' : '#FFFFFF',
+          border: isLightMode ? '1px solid rgba(244, 114, 182, 0.35)' : '1px solid rgba(255, 255, 255, 0.2)',
+          fontWeight: 700,
         }}>
-          MACRO AUC: <strong>{(rocAuc?.macro_auc ?? 0.6383).toFixed(4)}</strong>
+          MACRO AUC: <strong style={{ color: isLightMode ? '#db2777' : '#FFFFFF' }}>{(rocAuc?.macro_auc ?? 0.6383).toFixed(4)}</strong>
         </div>
       </div>
 
       <div style={{ height: '260px', width: '100%' }}>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.05)" />
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke={isLightMode ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.05)'}
+            />
             <XAxis
               dataKey="fpr"
-              stroke="#A1A1AA"
+              stroke={isLightMode ? '#64748b' : '#A1A1AA'}
               fontSize={12}
               tickFormatter={(v) => v.toFixed(1)}
               domain={[0, 1]}
             />
             <YAxis
-              stroke="#A1A1AA"
+              stroke={isLightMode ? '#64748b' : '#A1A1AA'}
               fontSize={12}
               tickFormatter={(v) => v.toFixed(1)}
               domain={[0, 1]}
             />
             <Tooltip
               contentStyle={{
-                backgroundColor: 'var(--bg-surface-2)',
-                border: '1px solid var(--border-card)',
+                backgroundColor: isLightMode ? '#ffffff' : 'var(--bg-surface-2)',
+                border: isLightMode ? '1.5px solid rgba(244, 114, 182, 0.4)' : '1px solid var(--border-card)',
                 borderRadius: '8px',
                 fontSize: '0.8rem',
+                color: isLightMode ? '#09090b' : '#ffffff',
+                boxShadow: isLightMode ? '0 8px 24px rgba(244, 114, 182, 0.2)' : undefined,
               }}
             />
-            <Legend wrapperStyle={{ fontSize: '0.75rem', paddingTop: '8px' }} />
+            <Legend
+              wrapperStyle={{
+                fontSize: '0.75rem',
+                paddingTop: '8px',
+                color: isLightMode ? '#334155' : undefined,
+              }}
+            />
 
             {/* Diagonal Chance Line */}
             <Line
               type="monotone"
               dataKey="chance"
               name="Chance Baseline"
-              stroke="#52525B"
+              stroke={isLightMode ? '#94a3b8' : '#52525B'}
               strokeDasharray="4 4"
               dot={false}
               strokeWidth={1.5}
@@ -138,15 +174,6 @@ export default function RocChart({ rocCurves = {}, rocAuc = {} }) {
             />
           </LineChart>
         </ResponsiveContainer>
-      </div>
-
-      <div style={{
-        marginTop: '12px',
-        fontSize: '0.75rem',
-        color: 'var(--text-tertiary)',
-        textAlign: 'center'
-      }}>
-        T4 (Both Feet) dominates with <strong>AUC = 0.775</strong>, showing strongest discriminability over contralateral hand rhythms.
       </div>
     </div>
   );

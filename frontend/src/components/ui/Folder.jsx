@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Database, ShieldCheck, Cpu } from 'lucide-react';
 
-
 /**
  * Folder
  * Interactive tabbed folder component inspired by modern macOS/iOS filesystem cards.
@@ -55,6 +54,7 @@ export default function Folder({
       },
     },
   ],
+  isLightMode = true,
   className = '',
   style = {},
 }) {
@@ -66,10 +66,10 @@ export default function Folder({
     <div
       className={`folder-component ${className}`}
       style={{
-        borderRadius: 'var(--radius-md, 14px)',
-        background: 'rgba(15, 15, 22, 0.85)',
-        border: '1px solid rgba(255, 255, 255, 0.14)',
-        boxShadow: '0 12px 36px rgba(0, 0, 0, 0.5)',
+        borderRadius: '18px',
+        background: isLightMode ? 'rgba(255, 255, 255, 0.96)' : 'rgba(15, 15, 22, 0.85)',
+        border: isLightMode ? '1.5px solid rgba(244, 114, 182, 0.3)' : '1px solid rgba(255, 255, 255, 0.14)',
+        boxShadow: isLightMode ? '0 16px 40px -10px rgba(244, 114, 182, 0.14)' : '0 12px 36px rgba(0, 0, 0, 0.5)',
         overflow: 'hidden',
         ...style,
       }}
@@ -78,8 +78,8 @@ export default function Folder({
       <div
         style={{
           display: 'flex',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-          background: 'rgba(0, 0, 0, 0.3)',
+          borderBottom: isLightMode ? '1px solid rgba(244, 114, 182, 0.25)' : '1px solid rgba(255, 255, 255, 0.1)',
+          background: isLightMode ? 'rgba(253, 242, 248, 0.7)' : 'rgba(0, 0, 0, 0.3)',
           overflowX: 'auto',
         }}
       >
@@ -95,27 +95,39 @@ export default function Folder({
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '8px',
-                padding: '14px 20px',
-                background: isActive ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
+                padding: '14px 22px',
+                background: isActive
+                  ? (isLightMode ? '#ffffff' : 'rgba(255, 255, 255, 0.08)')
+                  : 'transparent',
                 border: 'none',
-                borderBottom: isActive ? '2px solid #FFFFFF' : '2px solid transparent',
-                color: isActive ? '#FFFFFF' : 'var(--text-tertiary)',
-                fontWeight: isActive ? 700 : 500,
-                fontSize: '0.84rem',
+                borderBottom: isActive
+                  ? (isLightMode ? '2.5px solid #db2777' : '2px solid #FFFFFF')
+                  : '2.5px solid transparent',
+                color: isActive
+                  ? (isLightMode ? '#09090b' : '#FFFFFF')
+                  : (isLightMode ? '#64748b' : 'var(--text-tertiary)'),
+                fontWeight: isActive ? 800 : 600,
+                fontSize: '0.86rem',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
                 whiteSpace: 'nowrap',
               }}
             >
-              <Icon size={16} />
+              <Icon size={16} color={isActive ? (isLightMode ? '#db2777' : '#FFFFFF') : (isLightMode ? '#94a3b8' : '#71717A')} />
               <span>{folder.title}</span>
               <span
                 style={{
-                  fontSize: '0.66rem',
-                  padding: '1px 6px',
-                  borderRadius: '4px',
-                  background: 'rgba(255, 255, 255, 0.08)',
-                  color: isActive ? '#FFFFFF' : 'var(--text-tertiary)',
+                  fontSize: '0.68rem',
+                  padding: '2px 8px',
+                  borderRadius: '6px',
+                  background: isActive
+                    ? (isLightMode ? '#fdf2f8' : 'rgba(255, 255, 255, 0.08)')
+                    : (isLightMode ? 'rgba(0, 0, 0, 0.04)' : 'rgba(255, 255, 255, 0.04)'),
+                  color: isActive
+                    ? (isLightMode ? '#db2777' : '#FFFFFF')
+                    : (isLightMode ? '#64748b' : 'var(--text-tertiary)'),
+                  fontWeight: 700,
+                  border: isLightMode && isActive ? '1px solid rgba(244, 114, 182, 0.3)' : 'none',
                 }}
               >
                 {folder.badge}
@@ -126,26 +138,26 @@ export default function Folder({
       </div>
 
       {/* Folder Body Content */}
-      <div style={{ padding: '24px' }}>
-        <h4 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#FFFFFF', margin: '0 0 16px 0' }}>
+      <div style={{ padding: '28px' }}>
+        <h4 style={{ fontSize: '1.15rem', fontWeight: 800, color: isLightMode ? '#09090b' : '#FFFFFF', margin: '0 0 18px 0' }}>
           {currentFolder.content.heading}
         </h4>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
           {currentFolder.content.details.map((item, idx) => (
             <div
               key={idx}
               style={{
-                background: 'rgba(255, 255, 255, 0.03)',
-                border: '1px solid rgba(255, 255, 255, 0.07)',
-                borderRadius: '8px',
-                padding: '12px 16px',
-                fontSize: '0.82rem',
-                color: 'var(--text-secondary)',
-                lineHeight: 1.5,
+                background: isLightMode ? '#fdf2f8' : 'rgba(255, 255, 255, 0.03)',
+                border: isLightMode ? '1px solid rgba(244, 114, 182, 0.25)' : '1px solid rgba(255, 255, 255, 0.07)',
+                borderRadius: '12px',
+                padding: '14px 18px',
+                fontSize: '0.84rem',
+                color: isLightMode ? '#1e293b' : 'var(--text-secondary)',
+                lineHeight: 1.55,
+                fontWeight: 500,
               }}
             >
-              <span style={{ color: '#FFFFFF', marginRight: '6px' }}>•</span>
               {item}
             </div>
           ))}

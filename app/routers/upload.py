@@ -47,8 +47,9 @@ async def upload_trial(file: UploadFile = File(...)) -> UploadResponse:
     detected_ann: Optional[str] = None
     detected_run: Optional[int] = None
 
-    # 1. Handle EDF File
-    if filename.endswith(".edf"):
+    # 1. Handle EDF File (by extension or standard EDF magic header bytes)
+    is_edf = filename.endswith(".edf") or (len(contents) >= 8 and contents[:8] == b"0       ")
+    if is_edf:
         with tempfile.NamedTemporaryFile(suffix=".edf", delete=False) as tmp:
             tmp.write(contents)
             tmp_path = Path(tmp.name)
@@ -59,9 +60,9 @@ async def upload_trial(file: UploadFile = File(...)) -> UploadResponse:
             channel_names = raw.ch_names
             sampling_rate = float(raw.info["sfreq"])
 
-            # Extract run number from filename if available, e.g. S039R04.edf -> run 4
+            # Extract run number from filename if available, e.g. S014R14.edf or 14R14 -> run 14
             import re
-            run_match = re.search(r"[rR](\d{2})", filename)
+            run_match = re.search(r"[rR](\d{1,2})", filename)
             if run_match:
                 detected_run = int(run_match.group(1))
 

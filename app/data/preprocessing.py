@@ -474,6 +474,75 @@ def augment_training_samples(
     return X_combined[perm], y_combined[perm], n_augmented
 
 
+def balance_and_augment_training_samples(
+    X: np.ndarray,
+    y: np.ndarray,
+    target_count: Optional[int] = None,
+    noise_std_ratio: float = 0.04,
+    scale_range: Tuple[float, float] = (0.92, 1.08),
+    max_shift: int = 12,
+    random_state: int = 42,
+) -> Tuple[np.ndarray, np.ndarray, int]:
+    """Equalize class distributions across all 4 motor classes in the training set
+    (specifically targeting minority classes: Both Fists and Both Feet)
+    using physiologically safe jitter augmentation:
+      - Phase-preserving temporal shift (within +/- 12 samples = ~93ms at 128Hz)
+      - Gaussian noise jitter scaled to 4% of sample standard deviation
+      - Sensorimotor amplitude scaling in [0.92, 1.08]
+    Guarantees strict zero data leakage: applied strictly to training data only.
+    """
+    if len(X) == 0:
+        return X.copy(), y.copy(), 0
+
+    rng = np.random.RandomState(random_state)
+    classes, counts = np.unique(y, return_counts=True)
+    count_dict = dict(zip(classes, counts))
+
+    if target_count is None:
+        target_count = int(max(counts))
+
+    aug_X_list = [X.copy()]
+    aug_y_list = [y.copy()]
+    total_added = 0
+
+    for c in classes:
+        c_int = int(c)
+        current_n = count_dict.get(c, 0)
+        needed = target_count - current_n
+        if needed <= 0:
+            continue
+
+        c_indices = np.where(y == c)[0]
+        if len(c_indices) == 0:
+            continue
+
+        # Sample with replacement from class indices
+        sampled_idxs = rng.choice(c_indices, size=needed, replace=True)
+        class_aug_X = []
+        for idx in sampled_idxs:
+            sample = X[idx].copy()
+            # 1. Amplitude scale
+            sample = sample * rng.uniform(scale_range[0], scale_range[1])
+            # 2. Gaussian noise jitter
+            s_std = np.std(sample)
+            noise = rng.normal(0.0, noise_std_ratio * (s_std if s_std > 1e-9 else 1.0), size=sample.shape)
+            sample = sample + noise
+            # 3. Temporal phase shift
+            shift = rng.randint(-max_shift, max_shift + 1)
+            time_axis = 0 if sample.ndim <= 2 else -1
+            sample = np.roll(sample, shift, axis=time_axis)
+            class_aug_X.append(sample.astype(np.float32))
+
+        aug_X_list.append(np.array(class_aug_X, dtype=np.float32))
+        aug_y_list.append(np.full(needed, c, dtype=y.dtype))
+        total_added += needed
+
+    X_bal = np.concatenate(aug_X_list, axis=0)
+    y_bal = np.concatenate(aug_y_list, axis=0)
+    shuffle_perm = rng.permutation(len(X_bal))
+    return X_bal[shuffle_perm], y_bal[shuffle_perm], total_added
+
+
 class EEGPreprocessor:
     """End-to-end Preprocessor coordinating the 6 stages for trials and single recordings.
     """

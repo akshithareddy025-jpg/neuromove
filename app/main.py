@@ -54,6 +54,7 @@ app.include_router(subjects_router)
 
 
 @app.get("/", tags=["Health"])
+@app.get("/health", tags=["Health"])
 @app.get("/api/health", tags=["Health"])
 async def root():
     """Health check endpoint."""

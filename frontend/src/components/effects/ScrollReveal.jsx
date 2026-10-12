@@ -10,7 +10,7 @@ export default function ScrollReveal({
   animation = 'fade-up', // 'fade-up' | 'blur-in' | 'zoom' | 'slide-right'
   delay = 0,
   duration = 600,
-  threshold = 0.15,
+  threshold = 0.01,
   once = true,
   className = '',
   style = {},
@@ -31,7 +31,7 @@ export default function ScrollReveal({
           setIsVisible(false);
         }
       },
-      { threshold }
+      { threshold, rootMargin: '120px 0px 120px 0px' }
     );
 
     observer.observe(el);

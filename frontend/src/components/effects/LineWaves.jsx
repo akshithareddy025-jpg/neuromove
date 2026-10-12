@@ -27,12 +27,18 @@ export default function LineWaves({
 
     const resize = () => {
       const rect = canvas.getBoundingClientRect();
-      canvas.width = rect.width * window.devicePixelRatio || 800;
-      canvas.height = rect.height * window.devicePixelRatio || height;
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      canvas.width = Math.max(1, Math.floor((rect.width || 800) * dpr));
+      canvas.height = Math.max(1, Math.floor((rect.height || height) * dpr));
     };
 
     resize();
     window.addEventListener('resize', resize);
+
+    // Pause offscreen: zero GPU when not visible (optimize-web-animations).
+    let inView = true;
+    const io = new IntersectionObserver(([entry]) => { inView = entry.isIntersecting; }, { threshold: 0 });
+    io.observe(canvas);
 
     const onPointerMove = (e) => {
       const rect = canvas.getBoundingClientRect();
@@ -62,6 +68,8 @@ export default function LineWaves({
     let t = 0;
 
     const render = () => {
+      animId = requestAnimationFrame(render);
+      if (!inView || document.hidden) return; // gated: no offscreen GPU
       const w = canvas.width;
       const h = canvas.height;
       ctx.clearRect(0, 0, w, h);
@@ -108,13 +116,13 @@ export default function LineWaves({
       });
 
       ctx.globalAlpha = 1;
-      animId = requestAnimationFrame(render);
     };
 
     render();
 
     return () => {
       cancelAnimationFrame(animId);
+      io.disconnect();
       window.removeEventListener('resize', resize);
       canvas.removeEventListener('pointermove', onPointerMove);
       canvas.removeEventListener('pointerleave', onPointerLeave);

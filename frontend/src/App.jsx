@@ -1,494 +1,242 @@
 import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import HeroSection from './components/HeroSection';
-import LiveView from './views/LiveView';
-import DashboardView from './views/DashboardView';
-import LeaderboardView from './views/LeaderboardView';
-import ExplainerView from './views/ExplainerView';
-import GradualBlur from './components/effects/GradualBlur';
-import FloatingLines from './components/effects/FloatingLines';
+import NeuromovePortal from './components/effects/NeuromovePortal';
+import AtmosphericBackground from './components/ui/AtmosphericBackground';
+import SylvaWorldB from './components/worlds/SylvaWorldB';
+import WorldBUploadCard from './components/worlds/WorldBUploadCard';
+import SylvaHeroSection from './components/chapters/SylvaHeroSection';
+import TeamWildScoreSection from './components/TeamWildScoreSection';
+import NeuroZoomText from './components/chapters/NeuroZoomText';
+import PreprocessingStory from './components/chapters/PreprocessingStory';
+import MotorCortexChapter from './components/chapters/MotorCortexChapter';
+import CausalPayoffChapter from './components/chapters/CausalPayoffChapter';
+import TwoModelClassification from './components/chapters/TwoModelClassification';
+import OutputClasses from './components/chapters/OutputClasses';
+import SignalVisualization from './components/chapters/SignalVisualization';
+import LiveTelemetryInstrument from './components/chapters/LiveTelemetryInstrument';
+import PrecisionControlStudio from './components/chapters/PrecisionControlStudio';
+import ValidationChapter from './components/chapters/ValidationChapter';
+import DatasetSection from './components/chapters/DatasetSection';
+import ResearchTeamChapter from './components/chapters/ResearchTeamChapter';
+import TourCompletionSection from './components/chapters/TourCompletionSection';
+import SingleFooter from './components/chapters/SingleFooter';
 import Dock from './components/ui/Dock';
+import CustomCursor from './components/ui/CustomCursor';
+import PagePreloader from './components/ui/PagePreloader';
 import StaggeredMenu from './components/ui/StaggeredMenu';
-import { checkHealth, getMetrics, getSubjects, loadSampleTrial } from './api/client';
+import ParallaxComponent from './components/ui/parallax-scrolling';
+import { scrollToTarget, ScrollTrigger } from './lib/scrollEngine';
+import { checkHealth, getMetrics, loadSampleTrial } from './api/client';
 
+const NAV_SECTIONS = [
+  { id: 'hero', label: 'Overview', target: '#hero', dock: 'dashboard' },
+  { id: 'story', label: 'Neural Story', target: '#scroll-story-stage', dock: 'explainer' },
+  { id: 'cortex', label: 'Motor Cortex', target: '#motor-cortex', dock: 'explainer' },
+  { id: 'pipeline', label: 'Pipeline', target: '#causal-pipeline', dock: 'explainer' },
+  { id: 'telemetry', label: 'Live Telemetry', target: '#telemetry-instrument', dock: 'live' },
+  { id: 'studio', label: 'Precision Studio', target: '#precision-studio', dock: 'live' },
+  { id: 'validation', label: 'Validation', target: '#validation-proof', dock: 'leaderboard' },
+  { id: 'team', label: 'Team', target: '#research-team', dock: 'leaderboard' },
+];
 
+/**
+ * NeuroMove — Continuous single-page document flow.
+ *
+ * Fix for Screen Recording 1 blank-on-scroll:
+ * Previously only ONE section mounted at a time via activeSection thresholds.
+ * With a single 100vh section mounted, document scrollHeight collapsed, scroll
+ * percent math became unstable, ScrollTrigger pins mis-measured, and the
+ * broken ScrollVideoSection (ScrollTrigger.kill + missing import + no canvas
+ * draw) threw on mount — leaving a pure black viewport for ~15s.
+ *
+ * Now: every chapter renders continuously. Header nav scrolls to real anchors:
+ * hero, scroll-story-stage, motor-cortex, causal-pipeline, telemetry-instrument,
+ * validation-proof, research-team. No unmount on scroll. Portal owns only its
+ * own timeline via gsap.context revert.
+ */
 export default function App() {
-  const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedModel, setSelectedModel] = useState('minirocket');
-  const [currentTrial, setCurrentTrial] = useState(null);
-  const [menuOpen, setMenuOpen] = useState(false);
-
-  // Backend state
-  const [backendHealth, setBackendHealth] = useState(null);
-  const [backendStatus, setBackendStatus] = useState('connecting');
   const [metrics, setMetrics] = useState(null);
-  const [metricsLoading, setMetricsLoading] = useState(true);
-  const [metricsError, setMetricsError] = useState(null);
-  const [leaderboardData, setLeaderboardData] = useState(null);
-  const [leaderboardLoading, setLeaderboardLoading] = useState(true);
-  const [leaderboardError, setLeaderboardError] = useState(null);
+  const [backendHealth, setBackendHealth] = useState(null);
+  const [backendStatus, setBackendStatus] = useState('checking');
+  const [currentTrial, setCurrentTrial] = useState(null);
+  const [livePrediction, setLivePrediction] = useState(null);
+  const [portalProgress, setPortalProgress] = useState(0);
+  const clampedProgress = Math.max(0, Math.min(1, portalProgress));
+  const [activeSection, setActiveSection] = useState('hero');
 
-
-  // Health check & Initial data load
+  // Single shared scroll-spy: Header + Dock follow actual scroll position.
   useEffect(() => {
-    let isMounted = true;
-
-    // 1. Health check
-    checkHealth()
-      .then((health) => {
-        if (isMounted) {
-          setBackendHealth(health);
-          setBackendStatus('online');
+    let ticking = false;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        ticking = false;
+        const pos = window.scrollY + window.innerHeight * 0.35;
+        let current = 'hero';
+        for (const item of NAV_SECTIONS) {
+          const el = document.querySelector(item.target);
+          if (el && el.offsetTop <= pos) current = item.id;
         }
-      })
-      .catch(() => {
-        if (isMounted) setBackendStatus('offline');
+        setActiveSection((prev) => (prev === current ? prev : current));
       });
-
-    // 2. Fetch production metrics (MiniRocket, subject_dependent)
-    setMetricsLoading(true);
-    getMetrics('minirocket', 'subject_dependent')
-      .then((data) => {
-        if (isMounted) {
-          setMetrics(data);
-          setMetricsLoading(false);
-        }
-      })
-      .catch((err) => {
-        if (isMounted) {
-          setMetricsError(err.message);
-          setMetricsLoading(false);
-        }
-      });
-
-    // 3. Fetch subjects leaderboard (subject_dependent)
-    setLeaderboardLoading(true);
-    getSubjects('subject_dependent')
-      .then((data) => {
-        if (isMounted) {
-          setLeaderboardData(data);
-          setLeaderboardLoading(false);
-        }
-      })
-      .catch((err) => {
-        if (isMounted) {
-          setLeaderboardError(err.message);
-          setLeaderboardLoading(false);
-        }
-      });
-
-    // 4. Preload a real sample trial
-    loadSampleTrial()
-      .then((trial) => {
-        if (isMounted && !currentTrial) {
-          setCurrentTrial(trial);
-        }
-      })
-      .catch(() => {
-        // Silent fallback
-      });
-
-    return () => { isMounted = false; };
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // When model is switched, reload metrics for that model
-  const handleModelChange = (model) => {
-    setSelectedModel(model);
-    setMetricsLoading(true);
-    setMetricsError(null);
-    getMetrics(model, 'subject_dependent')
+  useEffect(() => {
+    checkHealth()
       .then((data) => {
-        setMetrics(data);
-        setMetricsLoading(false);
+        setBackendHealth(data);
+        setBackendStatus(data.status === 'ok' ? 'online' : 'degraded');
       })
-      .catch((err) => {
-        setMetricsError(err.message);
-        setMetricsLoading(false);
-      });
-  };
+      .catch(() => setBackendStatus('offline'));
 
-  const handleLaunchLive = () => {
-    setActiveTab('live');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleExploreLeaderboard = () => {
-    setActiveTab('leaderboard');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleExploreExplainer = () => {
-    setActiveTab('explainer');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleViewBenchmarks = () => {
-    setActiveTab('dashboard');
-    const el = document.getElementById('metric-card-prod-acc');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
-  const handleQuickBenchmark = () => {
-    setActiveTab('live');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    loadSampleTrial(null, true)
-      .then((trial) => {
-        setCurrentTrial(trial);
-      })
+    getMetrics('minirocket', 'subject_dependent')
+      .then((data) => setMetrics(data))
       .catch((err) => console.warn(err));
-  };
 
+    loadSampleTrial('T1')
+      .then((data) => setCurrentTrial(data))
+      .catch((err) => console.warn(err));
+  }, []);
+
+  // Scroll engine is owned solely by SmoothScrollProvider (main.jsx).
+  // App only refreshes ScrollTrigger measurements after mount, fonts, and full load.
+  useEffect(() => {
+    const refresh = () => {
+      try { ScrollTrigger.refresh(); } catch { /* noop */ }
+    };
+    const t = setTimeout(refresh, 350);
+    const t2 = setTimeout(refresh, 1500);
+    window.addEventListener('load', refresh, { once: true });
+    if (document.fonts?.ready) document.fonts.ready.then(refresh).catch(() => {});
+    return () => {
+      clearTimeout(t);
+      clearTimeout(t2);
+      window.removeEventListener('load', refresh);
+    };
+  }, []);
 
   return (
-    <div className="app-shell" style={{ position: 'relative', minHeight: '100vh' }}>
-      <div className="app-container">
+    <div
+      className="app-shell"
+      style={{
+        position: 'relative',
+        minHeight: '100vh',
+        background: '#020204',
+        // clip (not hidden): kills horizontal overflow WITHOUT creating a
+        // scroll container, so sticky anchors (hero hand, preprocessing story,
+        // World B) and ScrollTrigger keep measuring against the viewport.
+        // overflow-x:hidden would compute overflow-y to auto, trapping sticky.
+        overflowX: 'clip',
+      }}
+    >
+      <AtmosphericBackground visibilityProgress={clampedProgress} />
 
-        {/* 3. Floating Capsule Glass Navigation */}
+      <div className="app-container" style={{ position: 'relative', zIndex: 10, maxWidth: '1440px', margin: '0 auto' }}>
         <Header
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
           backendHealth={backendHealth}
           backendStatus={backendStatus}
           currentTrial={currentTrial}
+          activeSection={activeSection}
+          navItems={NAV_SECTIONS}
         />
 
-        {/* 4. Editorial SaaS Hero Section (on Dashboard / Home) */}
-        {activeTab === 'dashboard' && (
+        <main style={{ position: 'relative', zIndex: 10 }}>
           <HeroSection
-            onLaunchLive={handleLaunchLive}
-            onViewBenchmarks={handleViewBenchmarks}
-            backendStatus={backendStatus}
+            onLaunchLive={() => scrollToTarget('#telemetry-instrument', {})}
+            onViewBenchmarks={() => scrollToTarget('#validation-proof', {})}
+            backendStatus={backendStatus === 'checking' ? 'connecting' : backendHealth ? 'online' : 'offline'}
             currentTrial={currentTrial}
+            progress={clampedProgress}
           />
-        )}
 
-        {/* 5. Main View Content */}
-        <main>
-          {activeTab === 'dashboard' && (
-            <DashboardView
-              metrics={metrics}
-              loading={metricsLoading}
-              error={metricsError}
-              onLaunchLive={handleLaunchLive}
-              onExploreLeaderboard={handleExploreLeaderboard}
-              onExploreExplainer={handleExploreExplainer}
+          <TeamWildScoreSection />
+
+          <NeuromovePortal
+            onProgressUpdate={(p) => setPortalProgress(p)}
+          />
+
+          {/* WORLD B — continuous SylvaHero living-green environment across all chapters.
+              Background remains pinned while cards and sections scroll smoothly over it. */}
+          <SylvaWorldB>
+            <SylvaHeroSection
+              onExploreCortex={() => scrollToTarget('#motor-cortex', {})}
+              onLaunchLive={() => scrollToTarget('#telemetry-instrument', {})}
             />
-          )}
 
-          {activeTab === 'live' && (
-            <LiveView
+            {/* Upload FIRST: file attach at the top of the Sylva world arms
+                every downstream chapter (telemetry, validation, proof). */}
+            <WorldBUploadCard onTrialLoaded={setCurrentTrial} />
+
+            <NeuroZoomText />
+
+            {/* Header target: #scroll-story-stage */}
+            <div id="scroll-story-stage" style={{ position: 'relative', scrollMarginTop: '90px' }}>
+              <PreprocessingStory />
+            </div>
+
+            <MotorCortexChapter />
+
+            <TwoModelClassification />
+
+            <OutputClasses />
+
+            <SignalVisualization
+              currentTrial={currentTrial}
+              livePrediction={livePrediction}
+            />
+
+            <CausalPayoffChapter />
+
+            <LiveTelemetryInstrument
               currentTrial={currentTrial}
               onTrialLoaded={setCurrentTrial}
               selectedModel={selectedModel}
-              onSelectModel={handleModelChange}
+              onSelectModel={setSelectedModel}
+              onPrediction={setLivePrediction}
             />
-          )}
 
-          {activeTab === 'leaderboard' && (
-            <LeaderboardView
-              leaderboardData={leaderboardData}
-              metricsData={metrics}
-              loading={leaderboardLoading}
-              error={leaderboardError}
-            />
-          )}
+            <ValidationChapter metrics={metrics} />
 
-          {activeTab === 'explainer' && (
-            <ExplainerView currentTrial={currentTrial} />
-          )}
+            <DatasetSection />
+
+            <ResearchTeamChapter />
+          </SylvaWorldB>
         </main>
-
-        {/* 6. Editorial Research Instrument Footer (Sentinel 4-Column Layout) */}
-        <footer
-          style={{
-            marginTop: '96px',
-            paddingTop: '48px',
-            paddingBottom: '40px',
-            borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-          }}
-        >
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-              gap: '36px',
-              marginBottom: '40px',
-            }}
-          >
-            {/* Col 1: Brand & Academic Context */}
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
-                <div
-                  style={{
-                    width: '10px',
-                    height: '10px',
-                    borderRadius: '50%',
-                    background: '#FFFFFF',
-                    boxShadow: '0 0 10px rgba(255, 255, 255, 0.8)',
-                  }}
-                />
-                <span style={{ color: '#FFFFFF', fontWeight: 700, fontSize: '1.05rem', letterSpacing: '-0.02em' }}>
-                  NeuroMove
-                </span>
-                <span
-                  style={{
-                    fontSize: '0.68rem',
-                    padding: '2px 8px',
-                    borderRadius: '4px',
-                    background: 'rgba(255, 255, 255, 0.1)',
-                    border: '1px solid rgba(255, 255, 255, 0.2)',
-                    color: '#FFFFFF',
-                    fontWeight: 600,
-                  }}
-                >
-                  ACADEMIC BCI
-                </span>
-              </div>
-              <p style={{ color: 'var(--text-tertiary)', fontSize: '0.84rem', lineHeight: 1.6, margin: 0 }}>
-                Unified 4-Class Motor Imagery EEG Classification & Transparency Benchmark. Academic Capstone Project,
-                engineered for zero-leakage neuroprosthetic decoding at 6.1ms latency.
-              </p>
-            </div>
-
-            {/* Col 2: Platform & Models */}
-            <div>
-              <div style={{ color: '#FFFFFF', fontWeight: 600, fontSize: '0.88rem', marginBottom: '14px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                Architectures & Benchmarks
-              </div>
-              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.84rem', color: 'var(--text-tertiary)' }}>
-                <li>
-                  <button
-                    onClick={handleLaunchLive}
-                    style={{ background: 'none', border: 'none', padding: 0, color: 'inherit', cursor: 'pointer', textAlign: 'left', font: 'inherit' }}
-                    onMouseEnter={(e) => (e.currentTarget.style.color = '#FFFFFF')}
-                    onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-tertiary)')}
-                  >
-                    MiniRocket 5-Pair Classifier (97.41%)
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={handleLaunchLive}
-                    style={{ background: 'none', border: 'none', padding: 0, color: 'inherit', cursor: 'pointer', textAlign: 'left', font: 'inherit' }}
-                    onMouseEnter={(e) => (e.currentTarget.style.color = '#FFFFFF')}
-                    onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-tertiary)')}
-                  >
-                    Hybrid Spatio-Temporal CNN-LSTM (97.16%)
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={handleExploreLeaderboard}
-                    style={{ background: 'none', border: 'none', padding: 0, color: 'inherit', cursor: 'pointer', textAlign: 'left', font: 'inherit' }}
-                    onMouseEnter={(e) => (e.currentTarget.style.color = '#FFFFFF')}
-                    onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-tertiary)')}
-                  >
-                    Cross-Subject Leaderboard (S001–S010)
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={handleExploreExplainer}
-                    style={{ background: 'none', border: 'none', padding: 0, color: 'inherit', cursor: 'pointer', textAlign: 'left', font: 'inherit' }}
-                    onMouseEnter={(e) => (e.currentTarget.style.color = '#FFFFFF')}
-                    onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-tertiary)')}
-                  >
-                    Sensorimotor Mu/Beta (8–30 Hz) Waves
-                  </button>
-                </li>
-              </ul>
-            </div>
-
-            {/* Col 3: Rigor & Transparency */}
-            <div>
-              <div style={{ color: '#FFFFFF', fontWeight: 600, fontSize: '0.88rem', marginBottom: '14px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                Scientific Protocol
-              </div>
-              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.84rem', color: 'var(--text-tertiary)' }}>
-                <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#FFFFFF' }} />
-                  <span>Zero-Leakage Guarantee (0.00%)</span>
-                </li>
-                <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#D4D4D8' }} />
-                  <span>10-Fold Stratified Cross-Validation</span>
-                </li>
-                <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#A1A1AA' }} />
-                  <span>5-Pair Spatial Differential Bipolar</span>
-                </li>
-                <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#71717A' }} />
-                  <span>Empirical Baseline Floor (46.20%)</span>
-                </li>
-              </ul>
-            </div>
-
-            {/* Col 4: Contributors */}
-            <div>
-              <div style={{ color: '#FFFFFF', fontWeight: 600, fontSize: '0.88rem', marginBottom: '14px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                Core Contributors
-              </div>
-              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.82rem' }}>
-                <li>
-                  <a
-                    href="https://github.com/rohanvemula279-star"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ color: 'var(--text-tertiary)', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
-                    onMouseEnter={(e) => (e.currentTarget.style.color = '#FFFFFF')}
-                    onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-tertiary)')}
-                  >
-                    <span>Rohan Vemula</span>
-                    <span className="mono" style={{ fontSize: '0.68rem', color: '#10B981' }}>Lead Architect</span>
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="https://github.com/SudhasriA"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ color: 'var(--text-tertiary)', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
-                    onMouseEnter={(e) => (e.currentTarget.style.color = '#FFFFFF')}
-                    onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-tertiary)')}
-                  >
-                    <span>Sudhasri A</span>
-                    <span className="mono" style={{ fontSize: '0.68rem', color: '#34D399' }}>MiniRocket ML</span>
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="https://github.com/nakshathrav2007-hash"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ color: 'var(--text-tertiary)', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
-                    onMouseEnter={(e) => (e.currentTarget.style.color = '#FFFFFF')}
-                    onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-tertiary)')}
-                  >
-                    <span>Nakshathra V</span>
-                    <span className="mono" style={{ fontSize: '0.68rem', color: '#38BDF8' }}>CNN-LSTM DL</span>
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="https://github.com/akshithareddy025-jpg"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ color: 'var(--text-tertiary)', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
-                    onMouseEnter={(e) => (e.currentTarget.style.color = '#FFFFFF')}
-                    onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-tertiary)')}
-                  >
-                    <span>Akshitha Reddy</span>
-                    <span className="mono" style={{ fontSize: '0.68rem', color: '#F59E0B' }}>EEG DSP</span>
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="https://github.com/sahasramarikanti-cpu"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ color: 'var(--text-tertiary)', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
-                    onMouseEnter={(e) => (e.currentTarget.style.color = '#FFFFFF')}
-                    onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-tertiary)')}
-                  >
-                    <span>Sahasra Marikanti</span>
-                    <span className="mono" style={{ fontSize: '0.68rem', color: '#A855F7' }}>FastAPI & UI</span>
-                  </a>
-                </li>
-              </ul>
-            </div>
-
-            {/* Col 5: Citations & Open Source */}
-            <div>
-              <div style={{ color: '#FFFFFF', fontWeight: 600, fontSize: '0.88rem', marginBottom: '14px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                Academic Citations
-              </div>
-              <p style={{ color: 'var(--text-tertiary)', fontSize: '0.82rem', lineHeight: 1.5, margin: '0 0 8px' }}>
-                Hwaidi & Ghanem (2026), <em>NeuroImage</em> 328: 121087.<br />
-                PhysioNet Motor Imagery EEG Corpus.<br />
-                FastAI / Dempster et al. (2021) ROCKET.
-              </p>
-              <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
-                <span
-                  className="mono"
-                  style={{
-                    fontSize: '0.72rem',
-                    padding: '3px 8px',
-                    borderRadius: '4px',
-                    background: 'rgba(255, 255, 255, 0.05)',
-                    border: '1px solid rgba(255, 255, 255, 0.15)',
-                    color: '#FFFFFF',
-                  }}
-                >
-                  MIT LICENSE
-                </span>
-                <span
-                  className="mono"
-                  style={{
-                    fontSize: '0.72rem',
-                    padding: '3px 8px',
-                    borderRadius: '4px',
-                    background: 'rgba(255, 255, 255, 0.05)',
-                    border: '1px solid rgba(255, 255, 255, 0.15)',
-                    color: '#FFFFFF',
-                  }}
-                >
-                  COLLEGE SUBMISSION 2026
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Sub-footer Copyright Bar */}
-          <div
-            style={{
-              paddingTop: '20px',
-              borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              flexWrap: 'wrap',
-              gap: '16px',
-              fontSize: '0.8rem',
-              color: 'var(--text-tertiary)',
-            }}
-          >
-            <div>
-              © 2026 NeuroMove BCI Research Benchmark. All rights reserved.
-            </div>
-            <div className="mono" style={{ display: 'flex', gap: '16px', fontSize: '0.74rem' }}>
-              <span style={{ color: '#FFFFFF' }}>● ZERO-LEAKAGE AUDITED</span>
-              <span style={{ color: '#D4D4D8' }}>● LATENCY &lt; 7MS</span>
-              <span style={{ color: '#A1A1AA' }}>● 10-SUBJECT CORRELATION GRAPH</span>
-            </div>
-          </div>
-        </footer>
       </div>
 
-      {/* Ambient Floating Wave Lines (EEG Micro-rhythms) */}
-      <FloatingLines lineCount={7} speed={0.006} amplitude={32} />
+      {/* Exit: white reverse-zoom-out hands off from Sylva to the hand-world footer.
+          Both live outside SylvaWorldB so the footer always renders in the dark
+          hand world, never in Sylva light glass. */}
+      <div style={{ position: 'relative', zIndex: 10 }}>
+        <TourCompletionSection onRestartTour={() => scrollToTarget('#hero', {})} />
 
-      {/* Progressive Gradual Blur Vignette at Bottom */}
-      <GradualBlur position="bottom" height="90px" maxBlur={20} />
+        <SingleFooter data-world="hand" />
+      </div>
 
-      {/* macOS-style Bottom Floating Magnification Dock */}
       <Dock
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        onQuickAction={handleQuickBenchmark}
+        activeTab={NAV_SECTIONS.find((s) => s.id === activeSection)?.dock || 'dashboard'}
+        onTabChange={(targetId) => {
+          const sectionMap = {
+            dashboard: '#hero',
+            live: '#telemetry-instrument',
+            leaderboard: '#validation-proof',
+            explainer: '#scroll-story-stage',
+          };
+          scrollToTarget(sectionMap[targetId] || '#hero', {});
+        }}
+        onQuickAction={() => {
+          scrollToTarget('#telemetry-instrument', {});
+        }}
       />
 
-
-      {/* Staggered Drawer Menu */}
-      <StaggeredMenu
-        isOpen={menuOpen}
-        onClose={() => setMenuOpen(false)}
-        onSelectTab={setActiveTab}
-        activeTab={activeTab}
-      />
+      <CustomCursor />
     </div>
   );
 }
-

@@ -29,6 +29,14 @@ In Version 2.0, **both model architectures exceed the $\ge 95\%$ test accuracy b
 
 ## System Architecture Diagram
 
+<p align="center">
+  <img src="docs/architecture/model_architecture_technical.png" alt="NeuroMove 2.0 Dual-Champion Architecture Diagram" width="100%">
+</p>
+
+<p align="center">
+  <img src="docs/architecture/model_neural_layers.png" alt="NeuroMove 2.0 Deep Neural Layer & Tensor Flow Specification" width="100%">
+</p>
+
 ```mermaid
 graph TD
     subgraph S1["1. Raw EEG Ingestion (64-Ch PhysioNet EEGMMIDB)"]

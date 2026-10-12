@@ -31,8 +31,8 @@ export default function ProbabilityBars({ probabilities = {}, leadingClass = nul
                   <span
                     className="mono"
                     style={{
-                      background: isLeader ? classInfo.color : 'var(--bg-surface-3)',
-                      color: isLeader ? '#000000' : 'var(--text-secondary)',
+                      background: isLeader ? classInfo.color : 'rgba(28, 36, 32, 0.08)',
+                      color: isLeader ? '#FFFFFF' : 'var(--text-secondary)',
                       padding: '2px 6px',
                       borderRadius: '4px',
                       fontSize: '0.75rem',
@@ -62,20 +62,20 @@ export default function ProbabilityBars({ probabilities = {}, leadingClass = nul
               {/* Progress Bar Track */}
               <div style={{
                 height: '10px',
-                background: 'var(--bg-surface-0)',
+                background: 'rgba(28, 36, 32, 0.08)',
                 borderRadius: '9999px',
                 overflow: 'hidden',
-                border: '1px solid rgba(255, 255, 255, 0.05)'
+                border: '1px solid rgba(28, 36, 32, 0.08)'
               }}>
                 <div style={{
                   height: '100%',
                   width: `${Math.min(100, Math.max(0, pct))}%`,
                   background: isLeader
-                    ? `linear-gradient(90deg, ${classInfo.color}88, ${classInfo.color})`
-                    : 'var(--bg-surface-3)',
+                    ? `linear-gradient(90deg, ${classInfo.color}CC, ${classInfo.color})`
+                    : 'rgba(28, 36, 32, 0.12)',
                   borderRadius: '9999px',
                   transition: 'width 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-                  boxShadow: isLeader ? `0 0 10px ${classInfo.color}66` : 'none'
+                  boxShadow: 'none'
                 }} />
               </div>
             </div>
@@ -86,16 +86,17 @@ export default function ProbabilityBars({ probabilities = {}, leadingClass = nul
       <div style={{
         marginTop: '20px',
         padding: '10px 14px',
-        background: 'var(--bg-surface-0)',
-        borderRadius: 'var(--radius-sm)',
+        background: 'rgba(28, 36, 32, 0.04)',
+        border: '1px solid rgba(28, 36, 32, 0.08)',
+        borderRadius: '12px',
         fontSize: '0.78rem',
         color: 'var(--text-tertiary)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between'
       }}>
-        <span>Theoretical Chance Level: <strong>25.00%</strong></span>
-        <span>Decision: <strong>ArgMax Soft Voting</strong></span>
+        <span>Theoretical Chance Level: <strong style={{ color: '#1C2420' }}>25.00%</strong></span>
+        <span>Decision: <strong style={{ color: '#1C2420' }}>ArgMax Soft Voting</strong></span>
       </div>
     </div>
   );

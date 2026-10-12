@@ -13,10 +13,10 @@ const API_BASE = import.meta.env.VITE_API_URL || '';
 const USE_MOCKS = import.meta.env.VITE_USE_MOCKS === 'true';
 
 export const CLASS_MAPPING = {
-  T1: { code: 'T1', label: 'Left Fist', abbreviation: 'L', color: '#38BDF8' },
-  T2: { code: 'T2', label: 'Right Fist', abbreviation: 'R', color: '#60A5FA' },
-  T3: { code: 'T3', label: 'Both Fists', abbreviation: 'BLR', color: '#10B981' },
-  T4: { code: 'T4', label: 'Both Feet', abbreviation: 'BF', color: '#F59E0B' },
+  T1: { code: 'T1', label: 'Left Fist', abbreviation: 'L', color: '#A7D8F5' },
+  T2: { code: 'T2', label: 'Right Fist', abbreviation: 'R', color: '#7A263A' },
+  T3: { code: 'T3', label: 'Both Fists', abbreviation: 'BLR', color: '#6FAF64' },
+  T4: { code: 'T4', label: 'Both Feet', abbreviation: 'BF', color: '#E8C547' },
 };
 
 
@@ -138,6 +138,10 @@ export async function uploadTrial(file) {
       sampling_rate: 128.0,
       samples_per_channel: 9,
       message: 'Mock trial uploaded and preprocessed successfully.',
+      ground_truth_class: 0,
+      ground_truth_code: 'T1',
+      ground_truth_label: 'Left Fist (L)',
+      dataset_name: file.name,
     };
   }
 
@@ -157,22 +161,11 @@ export async function uploadTrial(file) {
 
     return await res.json();
   } catch (err) {
-    console.warn('[NeuroMove] Upload failed, returning simulated preprocessed trial:', err.message || err);
-    let fileHash = 0;
-    const str = `${file.name}_${file.size || 0}`;
-    for (let i = 0; i < str.length; i++) {
-      fileHash = (fileHash * 31 + str.charCodeAt(i)) & 0x7fffffff;
+    console.error('[NeuroMove] Upload failed:', err.message || err);
+    if (err.name === 'TypeError' || err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError')) {
+      throw new Error('Backend server is offline. Please start the backend on http://127.0.0.1:8000 to process EEG attachments.');
     }
-    return {
-      trial_id: `trial_upload_fallback_${fileHash.toString(16)}`,
-      channels: ['FC3', 'FC4', 'C5', 'C6', 'C3', 'C4', 'C1', 'C2', 'CP3', 'CP4'],
-      num_channels: 64,
-      duration_s: 4.0,
-      sampling_rate: 128.0,
-      samples_per_channel: 9,
-      message: 'Trial loaded in offline simulation mode. (Start backend server on port 8000 for live AI predictions).',
-      is_fallback: true,
-    };
+    throw new Error(err.message || 'Attach failed. Check the EEG file and try again.');
   }
 }
 
@@ -419,6 +412,10 @@ export async function predictTrial(trialId, model = 'minirocket') {
     return getMockPrediction();
   }
 
+  if (trialId && trialId.startsWith('trial_upload_fallback')) {
+    throw new Error('Trial was not successfully uploaded to the backend server. Please re-upload the EEG file while the backend is running.');
+  }
+
   try {
     const res = await fetch(`${API_BASE}/api/predict/${trialId}?model=${model}`, {
       method: 'POST',
@@ -432,11 +429,8 @@ export async function predictTrial(trialId, model = 'minirocket') {
     const data = await res.json();
     return Array.isArray(data) ? data : [data];
   } catch (err) {
-    console.warn(
-      '[NeuroMove] Backend API unreachable (http://127.0.0.1:8000). Using offline fallback. Start backend with: python -m uvicorn app.main:app --port 8000',
-      err.message || err
-    );
-    return getMockPrediction();
+    console.error('[NeuroMove] Prediction error:', err.message || err);
+    throw new Error(err.message || 'Prediction failed. Ensure backend server is running on http://127.0.0.1:8000.');
   }
 }
 

@@ -18,7 +18,7 @@ export default function CardNav({
       desc: 'Full transparency metrics, confusion matrix, and zero-leakage validation.',
       icon: LayoutDashboard,
       badge: '97.41% ACC',
-      color: '#38BDF8',
+      color: '#FFFFFF',
     },
     {
       id: 'live',
@@ -26,7 +26,7 @@ export default function CardNav({
       desc: 'Real-time oscilloscope streaming & dual-model consensus evaluation.',
       icon: Radio,
       badge: 'SUB-10MS',
-      color: '#10B981',
+      color: '#E4E4E7',
     },
     {
       id: 'leaderboard',
@@ -34,7 +34,7 @@ export default function CardNav({
       desc: '10-fold cross-validation breakdown across 109 PhysioNet subjects.',
       icon: Trophy,
       badge: '109 COHORTS',
-      color: '#60A5FA',
+      color: '#D4D4D8',
     },
     {
       id: 'explainer',
@@ -42,7 +42,7 @@ export default function CardNav({
       desc: '6-stage Butterworth preprocessing & sensorimotor electrode montage.',
       icon: Activity,
       badge: '5 PAIRS',
-      color: '#F43F5E',
+      color: '#A1A1AA',
     },
   ];
 
@@ -67,7 +67,7 @@ export default function CardNav({
             style={{
               borderRadius: 'var(--radius-md, 14px)',
               background: isActive
-                ? 'linear-gradient(135deg, rgba(35, 35, 48, 0.95), rgba(18, 18, 25, 0.98))'
+                ? 'linear-gradient(135deg, rgba(35, 35, 35, 0.95), rgba(18, 18, 18, 0.98))'
                 : 'rgba(255, 255, 255, 0.03)',
               border: `1px solid ${isActive ? card.color : 'rgba(255, 255, 255, 0.1)'}`,
               padding: '20px',

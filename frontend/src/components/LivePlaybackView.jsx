@@ -5,7 +5,7 @@ import { createStreamWebSocket, predictTrial, getTrialSignals, loadSampleTrial }
 import ProbabilityBars from './ProbabilityBars';
 import DecisionCallout from './DecisionCallout';
 
-export default function LivePlaybackView({ currentTrial, selectedModel, onTrialLoaded }) {
+export default function LivePlaybackView({ currentTrial, selectedModel, onTrialLoaded, onPrediction = null }) {
   const [isStreaming, setIsStreaming] = useState(false);
   const [isPredicting, setIsPredicting] = useState(false);
   const [currentFrame, setCurrentFrame] = useState(null);
@@ -27,6 +27,7 @@ export default function LivePlaybackView({ currentTrial, selectedModel, onTrialL
     setStreamProgress(0);
     setStreamError(null);
     setLiveProbabilities({ T1: 0.25, T2: 0.25, T3: 0.25, T4: 0.25 });
+    if (onPrediction) onPrediction(null);
 
     let isMounted = true;
     getTrialSignals(currentTrial.trial_id)
@@ -55,8 +56,8 @@ export default function LivePlaybackView({ currentTrial, selectedModel, onTrialL
 
     ctx.clearRect(0, 0, width, height);
 
-    // Grid lines
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+    // Grid lines (light instrument: faint moss grid, zero glow for Lenis FPS)
+    ctx.strokeStyle = 'rgba(28, 36, 32, 0.08)';
     ctx.lineWidth = 1;
     for (let x = 0; x < width; x += 40) {
       ctx.beginPath();
@@ -72,7 +73,7 @@ export default function LivePlaybackView({ currentTrial, selectedModel, onTrialL
     }
 
     // Baseline center line
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+    ctx.strokeStyle = 'rgba(28, 36, 32, 0.18)';
     ctx.beginPath();
     ctx.moveTo(0, height / 2);
     ctx.lineTo(width, height / 2);
@@ -83,11 +84,10 @@ export default function LivePlaybackView({ currentTrial, selectedModel, onTrialL
     const pointsCount = signalData ? signalData.length : 128;
     const pts = signalData || Array.from({ length: 128 }, (_, i) => Math.sin(i * 0.2) * 0.4 + Math.sin(i * 0.05) * 0.8);
 
-    // Waveform trace (Stark White Oscilloscope Beam)
-    ctx.strokeStyle = '#FFFFFF';
+    // Waveform trace (deep moss beam on warm-white, no shadow glow)
+    ctx.strokeStyle = '#1B4332';
     ctx.lineWidth = 2;
-    ctx.shadowColor = 'rgba(255, 255, 255, 0.5)';
-    ctx.shadowBlur = 8;
+    ctx.shadowBlur = 0;
     ctx.beginPath();
 
     for (let i = 0; i < pointsCount; i++) {
@@ -102,10 +102,9 @@ export default function LivePlaybackView({ currentTrial, selectedModel, onTrialL
 
     // Time Cursor (if streaming or progress > 0)
     const cursorX = (streamProgress / 100) * width;
-    ctx.strokeStyle = '#FFFFFF';
+    ctx.strokeStyle = '#2D6A4F';
     ctx.lineWidth = 2;
-    ctx.shadowColor = 'rgba(255, 255, 255, 0.8)';
-    ctx.shadowBlur = 10;
+    ctx.shadowBlur = 0;
     ctx.beginPath();
     ctx.moveTo(cursorX, 0);
     ctx.lineTo(cursorX, height);
@@ -139,9 +138,11 @@ export default function LivePlaybackView({ currentTrial, selectedModel, onTrialL
         predictTrial(currentTrial.trial_id, 'both')
           .then((preds) => {
             if (preds && preds.length > 0) {
+              const active = preds.find((p) => p.model === selectedModel) || preds[0];
               setFinalPredictions(preds);
-              setFinalPrediction(preds[0]);
-              setLiveProbabilities(preds[0].class_probabilities);
+              setFinalPrediction(active);
+              setLiveProbabilities(active.class_probabilities || preds[0].class_probabilities);
+              if (onPrediction) onPrediction(active);
             }
           })
           .catch((err) => console.warn(err));
@@ -168,10 +169,12 @@ export default function LivePlaybackView({ currentTrial, selectedModel, onTrialL
     try {
       const preds = await predictTrial(currentTrial.trial_id, modelToUse);
       if (preds && preds.length > 0) {
+        const active = preds.find((p) => p.model === selectedModel) || preds[0];
         setFinalPredictions(preds);
-        setFinalPrediction(preds[0]);
-        setLiveProbabilities(preds[0].class_probabilities);
+        setFinalPrediction(active);
+        setLiveProbabilities(active.class_probabilities || preds[0].class_probabilities);
         setStreamProgress(100);
+        if (onPrediction) onPrediction(active);
       }
     } catch (err) {
       setStreamError(err.message || 'Classification failed.');
@@ -215,11 +218,21 @@ export default function LivePlaybackView({ currentTrial, selectedModel, onTrialL
     }
   }
 
+  // Never surface raw transport errors ("Failed to fetch") to the bench UI.
+  const friendlyError = (msg) => {
+    if (!msg) return null;
+    if (/failed to fetch|networkerror|load failed|connection|offline/i.test(msg)) {
+      return 'Telemetry unavailable — backend unreachable. Retry when the FastAPI service is running.';
+    }
+    return msg;
+  };
+  const displayError = friendlyError(streamError);
+
   const QUICK_CLASSES = [
-    { code: 'T1', label: 'Left Fist', datasetId: 'ds_01', color: '#38BDF8', subject: 'S001' },
-    { code: 'T2', label: 'Right Fist', datasetId: 'ds_02', color: '#60A5FA', subject: 'S001' },
-    { code: 'T3', label: 'Both Fists', datasetId: 'ds_03', color: '#10B981', subject: 'S001' },
-    { code: 'T4', label: 'Both Feet', datasetId: 'ds_04', color: '#F59E0B', subject: 'S001' },
+    { code: 'T1', label: 'Left Fist', datasetId: 'ds_01', color: '#1E67D6', subject: 'S001' },
+    { code: 'T2', label: 'Right Fist', datasetId: 'ds_02', color: '#8A6D1B', subject: 'S001' },
+    { code: 'T3', label: 'Both Fists', datasetId: 'ds_03', color: '#2D6A4F', subject: 'S001' },
+    { code: 'T4', label: 'Both Feet', datasetId: 'ds_04', color: '#9B2C2C', subject: 'S001' },
   ];
 
 
@@ -230,8 +243,8 @@ export default function LivePlaybackView({ currentTrial, selectedModel, onTrialL
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px', marginBottom: '16px' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <h2 style={{ fontSize: '1.15rem', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Radio size={18} color="#FFFFFF" />
+              <h2 style={{ fontSize: '1.15rem', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: '8px', color: '#1C2420' }}>
+                <Radio size={18} color="#2D6A4F" />
                 Live Motor Imagery Streaming & Dual Model Evaluation
               </h2>
               <span className="badge badge-emerald" style={{ fontSize: '0.72rem' }}>
@@ -272,9 +285,9 @@ export default function LivePlaybackView({ currentTrial, selectedModel, onTrialL
         {/* Interactive 1-Click Benchmark Class Bar */}
         <div style={{
           padding: '12px 16px',
-          background: 'var(--bg-surface-0)',
+          background: 'rgba(245, 245, 238, 0.90)',
           borderRadius: 'var(--radius-md)',
-          border: '1px solid var(--border-subtle)',
+          border: '1px solid rgba(28, 36, 32, 0.12)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -282,8 +295,8 @@ export default function LivePlaybackView({ currentTrial, selectedModel, onTrialL
           gap: '12px'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Zap size={16} color="#FFFFFF" />
-            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '0.02em' }}>
+            <Zap size={16} color="#2D6A4F" />
+            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1C2420', letterSpacing: '0.02em' }}>
               QUICK TEST REAL MOTOR CLASSES (1-CLICK BENCHMARK & PREDICT):
             </span>
           </div>
@@ -298,10 +311,10 @@ export default function LivePlaybackView({ currentTrial, selectedModel, onTrialL
                 disabled={isPredicting || isStreaming}
                 style={{
                   padding: '6px 14px',
-                  borderRadius: '6px',
-                  border: `1px solid ${cls.color}55`,
-                  background: `${cls.color}15`,
-                  color: '#ffffff',
+                  borderRadius: '999px',
+                  border: `1px solid ${cls.color}44`,
+                  background: `${cls.color}14`,
+                  color: '#1C2420',
                   fontSize: '0.8rem',
                   fontWeight: 700,
                   cursor: isPredicting ? 'not-allowed' : 'pointer',
@@ -310,12 +323,12 @@ export default function LivePlaybackView({ currentTrial, selectedModel, onTrialL
                   gap: '6px',
                   transition: 'all 0.15s ease',
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = `${cls.color}35`; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = `${cls.color}15`; }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = `${cls.color}28`; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = `${cls.color}14`; }}
               >
                 <span style={{
                   background: cls.color,
-                  color: '#000000',
+                  color: '#FFFFFF',
                   padding: '1px 5px',
                   borderRadius: '4px',
                   fontSize: '0.72rem'
@@ -328,21 +341,28 @@ export default function LivePlaybackView({ currentTrial, selectedModel, onTrialL
           </div>
         </div>
 
-        {streamError && (
+        {displayError && (
           <div style={{
             marginTop: '14px',
-            background: 'rgba(255, 255, 255, 0.06)',
-            border: '1px solid rgba(255, 255, 255, 0.15)',
+            background: 'rgba(239, 68, 68, 0.08)',
+            border: '1px solid rgba(239, 68, 68, 0.25)',
             borderRadius: 'var(--radius-sm)',
             padding: '10px 14px',
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
-            color: 'var(--text-primary)',
+            color: '#991B1B',
             fontSize: '0.85rem'
           }}>
-            <AlertCircle size={16} />
-            <span>{streamError}</span>
+            <AlertCircle size={16} color="#DC2626" />
+            <span style={{ flex: 1, fontWeight: 500 }}>{displayError}</span>
+            <button
+              className="premium-pill"
+              onClick={() => { setStreamError(null); handleDirectPredict('both'); }}
+              style={{ minHeight: '34px', padding: '0 14px', fontSize: '0.76rem', background: '#FFFFFF' }}
+            >
+              Retry
+            </button>
           </div>
         )}
       </div>
@@ -353,8 +373,8 @@ export default function LivePlaybackView({ currentTrial, selectedModel, onTrialL
         <div className="card" style={{ display: 'flex', flexDirection: 'column' }}>
           <div className="card-header" style={{ marginBottom: '14px' }}>
             <div>
-              <h3 className="card-title" style={{ fontSize: '1.05rem' }}>
-                <Activity size={18} color="#FFFFFF" />
+              <h3 className="card-title" style={{ fontSize: '1.05rem', color: '#1C2420' }}>
+                <Activity size={18} color="#2D6A4F" />
                 EEG Channel Oscilloscope (C3–C4 Motor Cortex)
               </h3>
               <p className="card-subtitle">
@@ -404,11 +424,11 @@ export default function LivePlaybackView({ currentTrial, selectedModel, onTrialL
               <span>TRIAL PLAYBACK TIMELINE</span>
               <span className="mono">{streamProgress}% COMPLETED</span>
             </div>
-            <div style={{ height: '6px', background: 'var(--bg-surface-0)', borderRadius: '9999px', overflow: 'hidden' }}>
+            <div style={{ height: '6px', background: 'rgba(28, 36, 32, 0.08)', borderRadius: '9999px', overflow: 'hidden' }}>
               <div style={{
                 height: '100%',
                 width: `${streamProgress}%`,
-                background: 'linear-gradient(90deg, #FFFFFF, #71717A)',
+                background: 'linear-gradient(90deg, #2D6A4F, #52B788)',
                 transition: 'width 0.15s linear'
               }} />
             </div>
@@ -422,21 +442,21 @@ export default function LivePlaybackView({ currentTrial, selectedModel, onTrialL
             gap: '8px',
             fontSize: '0.78rem'
           }}>
-            <div style={{ background: 'var(--bg-surface-0)', padding: '8px 10px', borderRadius: '4px' }}>
+            <div style={{ background: 'rgba(28, 36, 32, 0.05)', border: '1px solid rgba(28, 36, 32, 0.08)', padding: '8px 10px', borderRadius: '10px' }}>
               <span style={{ color: 'var(--text-tertiary)' }}>FRAME: </span>
-              <span className="mono" style={{ color: 'var(--accent-cyan)', fontWeight: 600 }}>
+              <span className="mono" style={{ color: '#1E67D6', fontWeight: 600 }}>
                 {currentFrame ? `${currentFrame.frame_index + 1}/9` : 'Idle'}
               </span>
             </div>
-            <div style={{ background: 'var(--bg-surface-0)', padding: '8px 10px', borderRadius: '4px' }}>
+            <div style={{ background: 'rgba(28, 36, 32, 0.05)', border: '1px solid rgba(28, 36, 32, 0.08)', padding: '8px 10px', borderRadius: '10px' }}>
               <span style={{ color: 'var(--text-tertiary)' }}>WINDOW: </span>
-              <span className="mono" style={{ color: 'var(--text-primary)', fontWeight: 600 }}>
+              <span className="mono" style={{ color: '#1C2420', fontWeight: 600 }}>
                 {currentFrame ? `${currentFrame.window_start_s}s - ${currentFrame.window_end_s}s` : '0.0s - 4.0s'}
               </span>
             </div>
-            <div style={{ background: 'var(--bg-surface-0)', padding: '8px 10px', borderRadius: '4px' }}>
+            <div style={{ background: 'rgba(28, 36, 32, 0.05)', border: '1px solid rgba(28, 36, 32, 0.08)', padding: '8px 10px', borderRadius: '10px' }}>
               <span style={{ color: 'var(--text-tertiary)' }}>STREAM STATUS: </span>
-              <span className="mono" style={{ color: isStreaming ? 'var(--accent-amber)' : 'var(--accent-emerald)', fontWeight: 600 }}>
+              <span className="mono" style={{ color: isStreaming ? '#D97706' : '#2D6A4F', fontWeight: 600 }}>
                 {isStreaming ? 'STREAMING' : (streamProgress === 100 ? 'FINISHED' : 'READY')}
               </span>
             </div>

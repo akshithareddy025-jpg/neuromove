@@ -34,7 +34,7 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(line_buffering=True)
 
 from app.data.loader import PhysioNetLoader, normalize_subject_id
-from app.data.preprocessing import EEGPreprocessor
+from app.data.preprocessing import EEGPreprocessor, balance_and_augment_training_samples
 from app.models.minirocket_pipeline import MiniRocketPipeline
 
 CLASS_LABELS = {
@@ -51,13 +51,25 @@ def parse_args():
         "--data-dir",
         type=str,
         default="datasets",
-        help="Path to datasets directory containing Person-1 to Person-5 folders.",
+        help="Path to datasets directory containing Person-1 to Person-20 folders.",
     )
     parser.add_argument(
         "--subjects",
         type=str,
         default="Person-1,Person-2,Person-3,Person-4,Person-5",
-        help="Comma-separated list of subjects (e.g. 'Person-1,Person-2,Person-3,Person-4,Person-5' or 'S001,S002').",
+        help="Comma-separated list of subjects (e.g. 'Person-1,Person-2,...,Person-20', 'S001,S002', or 'all' for auto-discovery).",
+    )
+    parser.add_argument(
+        "--balance-classes",
+        action="store_true",
+        default=True,
+        help="Apply jitter augmentation strictly to training data to equalize minority classes (Both Fists and Both Feet).",
+    )
+    parser.add_argument(
+        "--download-missing",
+        action="store_true",
+        default=False,
+        help="Download missing subject runs from PhysioNet via MNE if not present locally.",
     )
     parser.add_argument(
         "--kernels",
@@ -110,6 +122,7 @@ def load_all_datasets(
     subject_names: List[str],
     filter_method: str = "bandpass",
     include_execution: bool = False,
+    download_missing: bool = False,
 ) -> Tuple[np.ndarray, np.ndarray, List[str], List[Dict]]:
     """Load and preprocess trials from all requested subjects."""
     loader = PhysioNetLoader(data_dir=data_dir)
@@ -119,25 +132,41 @@ def load_all_datasets(
         channel_mode="5_pairs",
     )
 
+    # Auto-discovery if 'all' requested
+    if len(subject_names) == 1 and subject_names[0].lower() in ["all", "auto"]:
+        discovered = []
+        if data_dir.exists():
+            for p in sorted(data_dir.iterdir()):
+                if p.is_dir() and (p.name.upper().startswith("PERSON") or p.name.upper().startswith("S")):
+                    discovered.append(p.name)
+        if not discovered:
+            discovered = [f"Person-{i}" for i in range(1, 21)]
+        subject_names = discovered
+
     all_X = []
     all_y = []
     all_meta = []
     trial_records_all = []
 
     print("\n=======================================================")
-    print("  LOADING & PREPROCESSING DATASETS (PERSON-1 TO 5)     ")
+    print(f"  LOADING & PREPROCESSING DATASETS ({len(subject_names)} SUBJECTS)     ")
     print("=======================================================")
 
     for sub_raw in subject_names:
         clean_sub = sub_raw.strip()
         norm_sub = normalize_subject_id(clean_sub)
 
-        trials = loader.load_subject_trials(
-            norm_sub,
-            include_execution=include_execution,
-            return_summary=False,
-        )
-        print(f"Loaded {len(trials)} trials for {clean_sub} ({norm_sub}).")
+        try:
+            trials = loader.load_subject_trials(
+                norm_sub,
+                include_execution=include_execution,
+                download_if_missing=download_missing,
+                return_summary=False,
+            )
+            print(f"Loaded {len(trials)} trials for {clean_sub} ({norm_sub}).")
+        except FileNotFoundError as e:
+            print(f"Notice: Skipping {clean_sub} ({norm_sub}): {e}")
+            continue
 
         for trial_idx, (raw_data, label, ch_names) in enumerate(trials):
             samples, pair_dict = preprocessor.preprocess_trial(raw_data, ch_names)
@@ -154,12 +183,15 @@ def load_all_datasets(
                 all_y.append(int(label))
                 all_meta.append(f"{norm_sub}_trial{trial_idx:02d}_win{s_idx:02d}")
 
+    if len(all_X) == 0:
+        raise RuntimeError("No EEG trials could be loaded from specified subjects. Please verify dataset paths.")
+
     all_X = np.array(all_X, dtype=np.float32)
     all_y = np.array(all_y, dtype=np.int64)
 
     print(f"\nTotal preprocessed dataset: {all_X.shape[0]} samples, feature length {all_X.shape[1]}")
     class_counts = {CLASS_LABELS[c]: int(count) for c, count in enumerate(np.bincount(all_y, minlength=4))}
-    print(f"Class distribution: {class_counts}")
+    print(f"Class distribution across all subjects: {class_counts}")
 
     return all_X, all_y, all_meta, trial_records_all
 
@@ -176,6 +208,7 @@ def train_and_evaluate(args):
         subject_names=subject_list,
         filter_method=args.filter_method,
         include_execution=args.include_execution,
+        download_missing=getattr(args, "download_missing", False),
     )
 
     # 2. Stratified Train / Test Split
@@ -190,7 +223,16 @@ def train_and_evaluate(args):
         random_state=args.seed,
         stratify=y_all,
     )
-    print(f"Train samples: {len(X_train)} | Test samples: {len(X_test)}")
+    print(f"Original Train samples: {len(X_train)} | Test samples: {len(X_test)}")
+
+    # Equalize training class balance if enabled
+    if getattr(args, "balance_classes", True):
+        print("\n--- Equalizing Minority Motor Classes (Both Fists & Both Feet) ---")
+        X_train, y_train, n_added = balance_and_augment_training_samples(
+            X_train, y_train, random_state=args.seed
+        )
+        bal_counts = {CLASS_LABELS[c]: int(count) for c, count in enumerate(np.bincount(y_train, minlength=4))}
+        print(f"Balanced Train distribution ({n_added} jitter samples added): {bal_counts}")
 
     # 3. Train MiniRocket Pipeline
     print("\n=======================================================")
@@ -203,6 +245,7 @@ def train_and_evaluate(args):
         kernels_per_pair=kernels_per_pair,
         max_dilations=args.max_dilations,
         random_state=args.seed,
+        class_weight="balanced",
     )
     model.fit(X_train, y_train)
     train_time_s = time.perf_counter() - t0
@@ -268,6 +311,10 @@ def train_and_evaluate(args):
 
     model.save(primary_model_path)
     model.save(high_acc_model_path)
+    if len(subject_list) > 5 or "20" in args.subjects:
+        multi_sub_path = artifacts_dir / f"minirocket_{len(subject_list)}sub.joblib"
+        model.save(multi_sub_path)
+        print(f"  Multi-subject model saved: {multi_sub_path.resolve()}")
     print(f"  Model saved to:     {primary_model_path.resolve()}")
     print(f"  Model saved to:     {high_acc_model_path.resolve()}")
 

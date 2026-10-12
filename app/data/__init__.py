@@ -11,6 +11,8 @@ from app.data.preprocessing import (
     segment_trials,
     extract_electrode_pairs,
     partition_dataset,
+    augment_training_samples,
+    balance_and_augment_training_samples,
 )
 
 __all__ = [
@@ -23,4 +25,6 @@ __all__ = [
     "segment_trials",
     "extract_electrode_pairs",
     "partition_dataset",
+    "augment_training_samples",
+    "balance_and_augment_training_samples",
 ]

@@ -6,8 +6,8 @@ import React, { useEffect, useRef } from 'react';
  * Lightweight, GPU-friendly 2D canvas simulation with physics damping and pointer-events: none.
  */
 export default function SplashCursor({
-  colorCyan = 'rgba(0, 240, 255, ',
-  colorIndigo = 'rgba(129, 140, 248, ',
+  colorCyan = 'rgba(255, 255, 255, ',
+  colorIndigo = 'rgba(200, 200, 200, ',
   particleCount = 28,
 }) {
   const canvasRef = useRef(null);

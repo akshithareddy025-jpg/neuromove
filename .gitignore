@@ -53,3 +53,12 @@ Thumbs.db
 .cv_cache/
 .ablation_cache/
 storage/trials/
+
+# Scratch & temporary tools/frames
+.claude/
+ezgif-*/
+frames_check/
+frames_sec/
+Skills_MengTo/
+find_colors_results.json
+

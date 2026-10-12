@@ -111,8 +111,12 @@ class PhysioNetLoader:
 
         search_dirs.extend([
             Path("datasets"),
+            Path("datasets/training"),
+            Path("training"),
             Path("data/physionet"),
             Path.home() / "mne_data" / "MNE-eegbci-data" / "files" / "eegmmidb" / "1.0.0",
+            Path(r"G:\Shared with me\training"),
+            Path(r"G:\My Drive\training"),
             Path(r"C:\Users\rohan\Downloads"),
             Path(r"C:\Users\rohan\Downloads\S089"),
         ])
@@ -127,6 +131,8 @@ class PhysioNetLoader:
                 base / target_name,
                 base / f"Person-{sub_int}" / target_name,
                 base / f"person-{sub_int}" / target_name,
+                base / "training" / f"Person-{sub_int}" / target_name,
+                base / "training" / norm_sub / target_name,
                 base / norm_sub.lower() / target_name_lower,
                 base / target_name_lower,
                 base / norm_sub.upper() / target_name,
@@ -140,14 +146,120 @@ class PhysioNetLoader:
                 return matches[0]
         return None
 
+    @staticmethod
+    def find_event_file(edf_path: Path) -> Optional[Path]:
+        """Search for an external event/annotation file companion to the given EDF file."""
+        candidates = [
+            edf_path.with_suffix(".event"),
+            edf_path.parent / (edf_path.name + ".event"),
+            edf_path.with_suffix(".tsv"),
+            edf_path.with_suffix(".txt"),
+            edf_path.with_name(f"{edf_path.stem}_events.tsv"),
+            edf_path.with_name(f"{edf_path.stem}_events.txt"),
+            edf_path.with_name(f"{edf_path.stem}.events"),
+        ]
+        for c in candidates:
+            if c.exists() and c.is_file():
+                return c
+        return None
+
+    def extract_trials_from_event_file(
+        self, event_path: Path, raw: mne.io.Raw, run: int
+    ) -> List[Tuple[np.ndarray, int]]:
+        """Extract trials using a companion event file (.event, .tsv, .txt).
+        Parses onsets, durations, and annotation tags (T0=rest, T1, T2).
+        """
+        sfreq = float(raw.info["sfreq"])
+        raw_data = raw.get_data()
+        trials = []
+
+        try:
+            with open(event_path, "r", encoding="utf-8", errors="ignore") as f:
+                lines = [line.strip() for line in f if line.strip()]
+
+            for line in lines:
+                if line.startswith("#") or line.lower().startswith("onset") or line.lower().startswith("latency"):
+                    continue
+
+                parts = line.replace(",", " ").replace("\t", " ").split()
+                if len(parts) < 2:
+                    continue
+
+                ann_label = None
+                onset_val = None
+
+                possible_label = parts[-1].strip().upper()
+                if possible_label in ["T0", "T1", "T2", "0", "1", "2", "3", "LEFT", "RIGHT", "FISTS", "FEET"]:
+                    ann_label = possible_label
+                    try:
+                        onset_val = float(parts[0])
+                    except ValueError:
+                        continue
+                elif len(parts) >= 3 and parts[2].strip().upper() in ["T0", "T1", "T2"]:
+                    ann_label = parts[2].strip().upper()
+                    try:
+                        onset_val = float(parts[0])
+                    except ValueError:
+                        continue
+                else:
+                    for p in parts:
+                        p_up = p.upper()
+                        if p_up in ["T0", "T1", "T2"]:
+                            ann_label = p_up
+                            break
+                    try:
+                        onset_val = float(parts[0])
+                    except ValueError:
+                        continue
+
+                # T0 is rest -> drop
+                if not ann_label or ann_label == "T0":
+                    continue
+
+                if onset_val < 1000.0 and (onset_val * sfreq) < raw_data.shape[1]:
+                    time_sample = int(round(onset_val * sfreq))
+                else:
+                    time_sample = int(round(onset_val))
+
+                target_class = -1
+                if run in self.ALL_TASK_FISTS:
+                    if ann_label in ["T1", "LEFT", "0"]:
+                        target_class = 0
+                    elif ann_label in ["T2", "RIGHT", "1"]:
+                        target_class = 1
+                elif run in self.ALL_TASK_FEET:
+                    if ann_label in ["T1", "FISTS", "2"]:
+                        target_class = 2
+                    elif ann_label in ["T2", "FEET", "3"]:
+                        target_class = 3
+
+                if target_class == -1:
+                    continue
+
+                start_idx = time_sample
+                end_idx = int(start_idx + 4.0 * sfreq)
+
+                if end_idx <= raw_data.shape[1]:
+                    trial_data = raw_data[:, start_idx:end_idx]
+                    trials.append((trial_data, target_class))
+        except Exception:
+            pass
+
+        return trials
+
     def discover_available_subjects(self) -> Dict[str, Dict[str, Any]]:
         """Scans local data directories to discover available subjects and their MI runs."""
         search_dirs = []
         if self.data_dir:
             search_dirs.append(Path(self.data_dir))
         search_dirs.extend([
+            Path("datasets"),
+            Path("datasets/training"),
+            Path("training"),
             Path("data/physionet"),
             Path.home() / "mne_data" / "MNE-eegbci-data" / "files" / "eegmmidb" / "1.0.0",
+            Path(r"G:\Shared with me\training"),
+            Path(r"G:\My Drive\training"),
             Path(r"C:\Users\rohan\Downloads"),
             Path(r"C:\Users\rohan\Downloads\S089"),
         ])
@@ -201,10 +313,22 @@ class PhysioNetLoader:
             f"and download_if_missing={download_if_missing}."
         )
 
-    def extract_trials_from_raw(self, raw: mne.io.Raw, run: int) -> List[Tuple[np.ndarray, int]]:
-        """Extract trials from an MNE Raw EDF instance using annotations.
+    def extract_trials_from_raw(
+        self, raw: mne.io.Raw, run: int, edf_path: Optional[Path] = None
+    ) -> List[Tuple[np.ndarray, int]]:
+        """Extract trials from an MNE Raw EDF instance. Checks for a companion event file first;
+        if absent or empty, falls back to embedded EDF annotations.
         Returns a list of (raw_trial_data_64xT, class_label).
         """
+        # 1. Check companion event file
+        if edf_path is not None:
+            event_file = self.find_event_file(edf_path)
+            if event_file is not None:
+                event_trials = self.extract_trials_from_event_file(event_file, raw, run)
+                if len(event_trials) > 0:
+                    return event_trials
+
+        # 2. Fallback to embedded MNE annotations
         events, event_dict = mne.events_from_annotations(raw, verbose=False)
         sfreq = raw.info["sfreq"]
 
@@ -288,9 +412,10 @@ class PhysioNetLoader:
 
         for run in target_runs:
             try:
+                file_path = self.find_edf_file(norm_sub, run)
                 raw = self.load_run_raw(norm_sub, run, download_if_missing=download_if_missing)
                 ch_names = raw.ch_names
-                run_trials = self.extract_trials_from_raw(raw, run)
+                run_trials = self.extract_trials_from_raw(raw, run, edf_path=file_path)
                 for data, label in run_trials:
                     subject_trials.append((data, label, ch_names))
                     class_counts[label] += 1

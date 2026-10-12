@@ -10,7 +10,7 @@ export default function FoldText({
   className = '',
   style = {},
   perspective = '800px',
-  foldColor = '#00F0FF',
+  foldColor = '#FFFFFF',
 }) {
   const [isHovered, setIsHovered] = useState(false);
 
